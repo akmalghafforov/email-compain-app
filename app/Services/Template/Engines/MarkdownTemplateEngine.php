@@ -28,10 +28,9 @@ class MarkdownTemplateEngine implements TemplateEngineInterface
 
     private function replaceVariables(string $content, array $variables): string
     {
-        foreach ($variables as $key => $value) {
-            $content = str_replace("{{" . $key . "}}", $value, $content);
-        }
+        $search = array_map(fn($key) => "{{" . $key . "}}", array_keys($variables));
+        $replace = array_values($variables);
 
-        return $content;
+        return str_replace($search, $replace, $content);
     }
 }
