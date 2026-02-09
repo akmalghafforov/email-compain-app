@@ -39,22 +39,20 @@ class SmtpEmailSender implements EmailSenderInterface
 
     public function sendBatch(array $recipients, string $subject, string $body): BatchResult
     {
-        $results = [];
-        $totalSent = 0;
-        $totalFailed = 0;
+        $results = array_map(fn (Sendable $recipient) => $this->attemptSend($recipient, $subject, $body), $recipients);
 
-        foreach ($recipients as $recipient) {
-            try {
-                $result = $this->send($recipient, $subject, $body);
-                $results[] = $result;
-                $totalSent++;
-            } catch (\Throwable $e) {
-                $results[] = new SendResult($this->generateMessageId(), 'failed');
-                $totalFailed++;
-            }
+        $totalSent = count(array_filter($results, fn (SendResult $r) => $r->isSuccessful()));
+
+        return new BatchResult($totalSent, count($results) - $totalSent, $results);
+    }
+
+    private function attemptSend(Sendable $recipient, string $subject, string $body): SendResult
+    {
+        try {
+            return $this->send($recipient, $subject, $body);
+        } catch (\Throwable) {
+            return new SendResult($this->generateMessageId(), 'failed');
         }
-
-        return new BatchResult($totalSent, $totalFailed, $results);
     }
 
     private function generateMessageId(): string
