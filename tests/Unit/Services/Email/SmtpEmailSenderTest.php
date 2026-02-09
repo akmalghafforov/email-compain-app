@@ -83,4 +83,24 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertNotEmpty($result->messageId);
         $this->assertEquals('sent', $result->status);
     }
+
+    /** @test */
+    public function it_throws_exception_when_send_fails(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+        $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
+        
+        $subscriber->shouldReceive('getEmail')->andReturn('invalid@');
+        $subscriber->shouldReceive('getName')->andReturn('Test');
+        
+        $mailer->shouldReceive('send')
+            ->andThrow(new \Exception('SMTP connection failed'));
+        
+        $sender = new SmtpEmailSender($mailer);
+        
+        $this->expectException(\App\Exceptions\SendFailedException::class);
+        $this->expectExceptionMessage('Failed to send email');
+        
+        $sender->send($subscriber, 'Subject', 'Body');
+    }
 }

@@ -9,6 +9,7 @@ use App\DTOs\SendResult;
 use App\DTOs\BatchResult;
 use App\Contracts\Subscriber\Sendable;
 use App\Contracts\EmailSenderInterface;
+use App\Exceptions\SendFailedException;
 
 class SmtpEmailSender implements EmailSenderInterface
 {
@@ -20,14 +21,18 @@ class SmtpEmailSender implements EmailSenderInterface
     {
         $messageId = $this->generateMessageId();
 
-        $this->mailer->send(
-            ['html' => 'emails.raw'],
-            ['content' => $htmlBody],
-            function ($message) use ($subscriber, $subject) {
-                $message->to($subscriber->getEmail(), $subscriber->getName())
-                    ->subject($subject);
-            }
-        );
+        try {
+            $this->mailer->send(
+                ['html' => 'emails.raw'],
+                ['content' => $htmlBody],
+                function ($message) use ($subscriber, $subject) {
+                    $message->to($subscriber->getEmail(), $subscriber->getName())
+                        ->subject($subject);
+                }
+            );
+        } catch (\Throwable $e) {
+            throw new SendFailedException('Failed to send email', 0, $e);
+        }
 
         return new SendResult($messageId, 'sent');
     }
