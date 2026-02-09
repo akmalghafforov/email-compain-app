@@ -41,4 +41,12 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
     {
         return Campaign::where('status', $status)->get();
     }
+
+    public function markAsSending(int $id): Campaign
+    {
+        $campaign = $this->findOrFail($id);
+        $campaign->update(['status' => 'sending']);
+
+        return $campaign;
+    }
 }

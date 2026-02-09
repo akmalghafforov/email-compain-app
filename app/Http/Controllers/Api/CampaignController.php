@@ -30,7 +30,9 @@ class CampaignController extends Controller
 
     public function dispatch(string $id): JsonResponse
     {
-        //
+        $campaign = $this->campaignRepository->markAsSending((int) $id);
+
+        return response()->json($campaign);
     }
 
     public function stats(string $id): JsonResponse
