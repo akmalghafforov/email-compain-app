@@ -57,8 +57,14 @@ fresh: ## Wipe database and run migrations with seed
 seed: ## Run database seeders
 	$(DC) exec app php artisan db:seed
 
-test: ## Run PHPUnit tests
-	$(DC) exec app php artisan test --colors=always
+test: ## Run all PHPUnit tests
+	$(DC) exec app php artisan test
+
+test-unit: ## Run Unit tests
+	$(DC) exec app php artisan test tests/Unit
+
+test-feature: ## Run Feature tests
+	$(DC) exec app php artisan test tests/Feature
 
 queue-logs: ## Watch queue logs
 	$(DC) logs -f queue
