@@ -18,11 +18,8 @@ class SmtpEmailSenderTest extends TestCase
     /** @test */
     public function it_implements_email_sender_interface(): void
     {
-        // Arrange
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $sender = new SmtpEmailSender($mailer);
-
-        // Assert
         $this->assertInstanceOf(EmailSenderInterface::class, $sender);
     }
 
@@ -66,5 +63,24 @@ class SmtpEmailSenderTest extends TestCase
         $result = $sender->send($subscriber, 'Test Subject', '<p>Test Body</p>');
 
         $this->assertInstanceOf(\App\DTOs\SendResult::class, $result);
+    }
+
+    /** @test */
+    public function it_returns_send_result_with_message_id(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+        $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
+        
+        $subscriber->shouldReceive('getEmail')->andReturn('test@example.com');
+        $subscriber->shouldReceive('getName')->andReturn('John');
+        $mailer->shouldReceive('send')->once();
+        
+        $sender = new SmtpEmailSender($mailer);
+        
+        $result = $sender->send($subscriber, 'Subject', '<p>Body</p>');
+        
+        $this->assertInstanceOf(\App\DTOs\SendResult::class, $result);
+        $this->assertNotEmpty($result->messageId);
+        $this->assertEquals('sent', $result->status);
     }
 }
