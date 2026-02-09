@@ -10,10 +10,19 @@ class MarkdownTemplateEngineTest extends TestCase
     /** @test */
     public function it_supports_markdown_engine(): void
     {
-        // Arrange
         $engine = new MarkdownTemplateEngine();
-        // Act & Assert
         $this->assertTrue($engine->supports('markdown'));
         $this->assertFalse($engine->supports('blade'));
+    }
+
+    /** @test */
+    public function it_converts_markdown_to_html(): void
+    {
+        $engine = new MarkdownTemplateEngine();
+        $markdown = '# Hello World';
+
+        $result = $engine->render($markdown, []);
+
+        $this->assertStringContainsString("<h1>Hello World</h1>", $result);
     }
 }
