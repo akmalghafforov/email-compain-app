@@ -39,4 +39,24 @@ class MarkdownTemplateEngineTest extends TestCase
 
         $this->assertStringContainsString('<h1>Hello Akmal!</h1>', $result);
     }
+
+    /** @test */
+    public function it_works_with_template_rendere()
+    {
+        $registry = new \App\Services\Template\TemplateEngineRegistry();
+        $registry->register(new MarkdownTemplateEngine());
+
+        $renderer = new \App\Services\Template\TemplateRenderer($registry);
+
+        $template = new \App\Models\Template([
+            'engine' => 'markdown',
+            'body_content' => "# Welcome {{name}}!\n\nYou have **{{count}}** new messages."
+        ]);
+
+        $variables = ['name' => 'Bob', 'count' => 5];
+        $result = $renderer->render($template, $variables);
+
+        $this->assertStringContainsString('<h1>Welcome Bob!</h1>', $result);
+        $this->assertStringContainsString('<strong>5</strong>', $result);
+    }
 }
