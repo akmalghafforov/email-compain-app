@@ -89,18 +89,168 @@ class SmtpEmailSenderTest extends TestCase
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
-        
+
         $subscriber->shouldReceive('getEmail')->andReturn('invalid@');
         $subscriber->shouldReceive('getName')->andReturn('Test');
-        
+
         $mailer->shouldReceive('send')
             ->andThrow(new \Exception('SMTP connection failed'));
-        
+
         $sender = new SmtpEmailSender($mailer);
-        
+
         $this->expectException(\App\Exceptions\SendFailedException::class);
         $this->expectExceptionMessage('Failed to send email');
-        
+
         $sender->send($subscriber, 'Subject', 'Body');
+    }
+
+    /** @test */
+    public function it_sends_batch_to_all_recipients(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+
+        $subscribers = $this->createSubscribers([
+            ['email' => 'alice@example.com', 'name' => 'Alice'],
+            ['email' => 'bob@example.com', 'name' => 'Bob'],
+        ]);
+
+        $mailer->shouldReceive('send')->twice();
+
+        $sender = new SmtpEmailSender($mailer);
+        $result = $sender->sendBatch($subscribers, 'Batch Subject', '<p>Batch Body</p>');
+
+        $this->assertInstanceOf(\App\DTOs\BatchResult::class, $result);
+        $this->assertEquals(2, $result->totalSent);
+        $this->assertEquals(0, $result->totalFailed);
+        $this->assertCount(2, $result->results);
+    }
+
+    /** @test */
+    public function it_returns_batch_result_with_unique_message_ids(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+
+        $subscribers = $this->createSubscribers([
+            ['email' => 'alice@example.com', 'name' => 'Alice'],
+            ['email' => 'bob@example.com', 'name' => 'Bob'],
+        ]);
+
+        $mailer->shouldReceive('send')->twice();
+
+        $sender = new SmtpEmailSender($mailer);
+        $result = $sender->sendBatch($subscribers, 'Subject', '<p>Body</p>');
+
+        $messageIds = array_map(fn ($r) => $r->messageId, $result->results);
+        $this->assertCount(2, array_unique($messageIds));
+    }
+
+    /** @test */
+    public function it_handles_partial_batch_failure(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+
+        $subscribers = $this->createSubscribers([
+            ['email' => 'alice@example.com', 'name' => 'Alice'],
+            ['email' => 'failing@example.com', 'name' => 'Failing'],
+        ]);
+
+        $mailer->shouldReceive('send')
+            ->once()
+            ->ordered();
+
+        $mailer->shouldReceive('send')
+            ->once()
+            ->ordered()
+            ->andThrow(new \Exception('SMTP error'));
+
+        $sender = new SmtpEmailSender($mailer);
+        $result = $sender->sendBatch($subscribers, 'Subject', '<p>Body</p>');
+
+        $this->assertEquals(1, $result->totalSent);
+        $this->assertEquals(1, $result->totalFailed);
+        $this->assertTrue($result->hasFailures());
+        $this->assertCount(2, $result->results);
+    }
+
+    /** @test */
+    public function it_handles_all_failing_in_batch(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+
+        $subscribers = $this->createSubscribers([
+            ['email' => 'fail1@example.com', 'name' => 'Fail1'],
+            ['email' => 'fail2@example.com', 'name' => 'Fail2'],
+        ]);
+
+        $mailer->shouldReceive('send')
+            ->twice()
+            ->andThrow(new \Exception('SMTP error'));
+
+        $sender = new SmtpEmailSender($mailer);
+        $result = $sender->sendBatch($subscribers, 'Subject', '<p>Body</p>');
+
+        $this->assertEquals(0, $result->totalSent);
+        $this->assertEquals(2, $result->totalFailed);
+        $this->assertTrue($result->hasFailures());
+    }
+
+    /** @test */
+    public function it_returns_empty_batch_result_for_no_recipients(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+        $mailer->shouldNotReceive('send');
+
+        $sender = new SmtpEmailSender($mailer);
+        $result = $sender->sendBatch([], 'Subject', '<p>Body</p>');
+
+        $this->assertInstanceOf(\App\DTOs\BatchResult::class, $result);
+        $this->assertEquals(0, $result->totalSent);
+        $this->assertEquals(0, $result->totalFailed);
+        $this->assertEmpty($result->results);
+    }
+
+    /** @test */
+    public function it_marks_failed_results_with_failed_status_in_batch(): void
+    {
+        $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
+
+        $subscribers = $this->createSubscribers([
+            ['email' => 'good@example.com', 'name' => 'Good'],
+            ['email' => 'bad@example.com', 'name' => 'Bad'],
+        ]);
+
+        $mailer->shouldReceive('send')
+            ->once()
+            ->ordered();
+
+        $mailer->shouldReceive('send')
+            ->once()
+            ->ordered()
+            ->andThrow(new \Exception('SMTP error'));
+
+        $sender = new SmtpEmailSender($mailer);
+        $result = $sender->sendBatch($subscribers, 'Subject', '<p>Body</p>');
+
+        $successful = $result->getSuccessful();
+        $failed = $result->getFailed();
+
+        $this->assertCount(1, $successful);
+        $this->assertCount(1, $failed);
+        $this->assertEquals('sent', $successful[0]->status);
+        $this->assertNotEquals('sent', $failed[0]->status);
+    }
+
+    /**
+     * @param list<array{email: string, name: string}> $data
+     * @return list<\App\Contracts\Subscriber\Sendable>
+     */
+    private function createSubscribers(array $data): array
+    {
+        return array_map(function (array $item) {
+            $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
+            $subscriber->shouldReceive('getEmail')->andReturn($item['email']);
+            $subscriber->shouldReceive('getName')->andReturn($item['name']);
+            return $subscriber;
+        }, $data);
     }
 }
