@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamp('opened_at')->nullable();
             $table->timestamp('clicked_at')->nullable();
             $table->text('failed_reason')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
 
             $table->unique(['campaign_id', 'subscriber_id']);
             $table->index(['campaign_id', 'status']);

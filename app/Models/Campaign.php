@@ -40,7 +40,7 @@ class Campaign extends Model
         return $this->belongsToMany(Subscriber::class)
             ->using(CampaignSubscriber::class)
             ->withPivot('status', 'sent_at', 'opened_at', 'clicked_at', 'failed_reason')
-            ->withTimestamps(createdAt: 'created_at', updatedAt: false);
+            ->withTimestamps();
     }
 
     public function deliveryLogs(): HasMany
