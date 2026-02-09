@@ -25,4 +25,18 @@ class MarkdownTemplateEngineTest extends TestCase
 
         $this->assertStringContainsString("<h1>Hello World</h1>", $result);
     }
+
+    /** @test */
+    public function it_renders_with_variables_substitution(): void
+    {
+        $engine = new MarkdownTemplateEngine();
+        $markdown = '# Hello {{name}}!';
+        $variables = [
+            'name' => 'Akmal',
+        ];
+
+        $result = $engine->render($markdown, $variables);
+
+        $this->assertStringContainsString('<h1>Hello Akmal!</h1>', $result);
+    }
 }
