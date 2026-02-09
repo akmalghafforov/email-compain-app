@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Dependencies (will be installed in container)
+/vendor
+/node_modules
+
+# Laravel
+/storage/*.key
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# Docker
+docker-compose.override.yml
+
+# Documentation
+*.md
+!README.md
+
+# Tests
+/tests
+phpunit.xml
+.phpunit.cache
+
+# Misc
+.DS_Store
+Thumbs.db
