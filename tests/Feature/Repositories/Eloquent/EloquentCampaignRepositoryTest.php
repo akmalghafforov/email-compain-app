@@ -1,15 +1,16 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Repositories\Eloquent;
 
-use App\Contracts\CampaignRepositoryInterface;
-use App\Enums\CampaignStatus;
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 use App\Models\Campaign;
 use App\Models\Template;
+use App\Enums\CampaignStatus;
+use App\Contracts\CampaignRepositoryInterface;
 use App\Services\Campaign\EloquentCampaignRepository;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 class EloquentCampaignRepositoryTest extends TestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Jobs;
 
 use Mockery;
 use Tests\TestCase;
@@ -12,12 +12,12 @@ use App\Models\Template;
 use App\DTOs\SendResult;
 use App\Models\Subscriber;
 use App\Models\DeliveryLog;
-use App\Enums\CampaignStatus;
-use App\Enums\CampaignSubscriberStatus;
-use App\Enums\DeliveryLogEvent;
 use App\Enums\TemplateEngine;
+use App\Enums\CampaignStatus;
+use App\Enums\DeliveryLogEvent;
 use App\Jobs\SendCampaignEmailJob;
 use App\Exceptions\SendFailedException;
+use App\Enums\CampaignSubscriberStatus;
 use App\Contracts\EmailSenderInterface;
 use App\Services\Template\TemplateRenderer;
 
@@ -151,8 +151,6 @@ class SendCampaignEmailJobTest extends TestCase
         $this->assertEquals(1, $failedCount);
         $this->assertCount(3, DeliveryLog::where('campaign_id', $campaign->id)->get());
     }
-
-    // ... (skipped variable render test)
 
     public function test_failed_method_marks_remaining_pending_subscribers_as_failed(): void
     {
