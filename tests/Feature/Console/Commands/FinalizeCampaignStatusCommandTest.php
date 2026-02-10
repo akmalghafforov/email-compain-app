@@ -83,11 +83,11 @@ class FinalizeCampaignStatusCommandTest extends TestCase
             totalSent: 5,
             totalOpened: 0,
             totalClicked: 0,
-            totalBounced: 0,
+
             totalFailed: 0,
             openRate: 0.0,
             clickRate: 0.0,
-            bounceRate: 0.0,
+
         );
 
         $stats2 = new CampaignStats(
@@ -95,11 +95,11 @@ class FinalizeCampaignStatusCommandTest extends TestCase
             totalSent: 0,
             totalOpened: 0,
             totalClicked: 0,
-            totalBounced: 0,
+
             totalFailed: 3,
             openRate: 0.0,
             clickRate: 0.0,
-            bounceRate: 0.0,
+
         );
 
         $mock = $this->mock(DeliveryTrackerInterface::class);
@@ -140,11 +140,11 @@ class FinalizeCampaignStatusCommandTest extends TestCase
             totalSent: $totalSent,
             totalOpened: 0,
             totalClicked: 0,
-            totalBounced: 0,
+
             totalFailed: $totalFailed,
             openRate: 0.0,
             clickRate: 0.0,
-            bounceRate: 0.0,
+
         );
 
         $this->mock(DeliveryTrackerInterface::class)

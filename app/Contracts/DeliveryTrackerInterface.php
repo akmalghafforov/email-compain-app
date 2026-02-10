@@ -31,12 +31,7 @@ interface DeliveryTrackerInterface
      */
     public function recordClick(string $trackingId, string $url): void;
 
-    /**
-     * Record that an email bounced.
-     *
-     * @param array<string, mixed> $payload
-     */
-    public function recordBounce(string $messageId, array $payload): void;
+
 
     /**
      * Get aggregated statistics for a campaign.

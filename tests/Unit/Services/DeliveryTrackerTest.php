@@ -117,7 +117,7 @@ class DeliveryTrackerTest extends TestCase
         // Record mixed events
         $this->tracker->recordSent($campaign, $subscriber1, new SendResult('msg-1', 'sent'));
         $this->tracker->recordSent($campaign, $subscriber2, new SendResult('msg-2', 'sent'));
-        $this->tracker->recordFailed($campaign, $subscriber3, 'Bounce');
+        $this->tracker->recordFailed($campaign, $subscriber3, 'Error');
 
         $stats = $this->tracker->getStats($campaign->id);
 
@@ -127,7 +127,7 @@ class DeliveryTrackerTest extends TestCase
         $this->assertEquals(1, $stats->totalFailed);
         $this->assertEquals(0, $stats->totalOpened);
         $this->assertEquals(0, $stats->totalClicked);
-        $this->assertEquals(0, $stats->totalBounced);
+
     }
 
     public function test_get_stats_returns_zero_rates_when_no_emails_sent(): void
@@ -140,6 +140,6 @@ class DeliveryTrackerTest extends TestCase
 
         $this->assertEquals(0.0, $stats->openRate);
         $this->assertEquals(0.0, $stats->clickRate);
-        $this->assertEquals(0.0, $stats->bounceRate);
+
     }
 }

@@ -23,11 +23,11 @@ class CampaignStatsTest extends TestCase
             totalSent: 80,
             totalOpened: 40,
             totalClicked: 20,
-            totalBounced: 5,
+
             totalFailed: 15,
             openRate: 0.5,
             clickRate: 0.25,
-            bounceRate: 0.0625,
+
         );
 
         $this->mock(DeliveryTrackerInterface::class, function ($mock) use ($campaign, $stats) {
@@ -46,11 +46,11 @@ class CampaignStatsTest extends TestCase
                     'totalSent' => 80,
                     'totalOpened' => 40,
                     'totalClicked' => 20,
-                    'totalBounced' => 5,
+
                     'totalFailed' => 15,
                     'openRate' => 0.5,
                     'clickRate' => 0.25,
-                    'bounceRate' => 0.0625,
+
                 ],
             ]);
     }

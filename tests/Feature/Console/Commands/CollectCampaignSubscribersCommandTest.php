@@ -20,7 +20,7 @@ class CollectCampaignSubscribersCommandTest extends TestCase
         $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
         $activeSubscribers = Subscriber::factory()->count(3)->create();
         Subscriber::factory()->unsubscribed()->count(2)->create();
-        Subscriber::factory()->bounced()->create();
+
 
         $this->artisan('campaigns:collect-subscribers')
             ->assertSuccessful();
@@ -95,20 +95,7 @@ class CollectCampaignSubscribersCommandTest extends TestCase
         ]);
     }
 
-    public function test_does_not_attach_bounced_subscribers(): void
-    {
-        $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
-        Subscriber::factory()->create();
-        $bounced = Subscriber::factory()->bounced()->create();
 
-        $this->artisan('campaigns:collect-subscribers')
-            ->assertSuccessful();
-
-        $this->assertDatabaseMissing('campaign_subscriber', [
-            'campaign_id' => $campaign->id,
-            'subscriber_id' => $bounced->id,
-        ]);
-    }
 
     public function test_marks_campaign_as_failed_when_no_active_subscribers_exist(): void
     {

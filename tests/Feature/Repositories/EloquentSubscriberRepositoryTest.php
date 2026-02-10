@@ -130,14 +130,14 @@ class EloquentSubscriberRepositoryTest extends TestCase
 
         $activeSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Active]);
         $unsubscribedSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Unsubscribed]);
-        $bouncedSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Bounced]);
+
 
         // This subscriber is active but not attached to campaign
         $otherActiveSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Active]);
 
         $campaign->subscribers()->attach($activeSubscriber, ['status' => CampaignSubscriberStatus::Pending]);
         $campaign->subscribers()->attach($unsubscribedSubscriber, ['status' => CampaignSubscriberStatus::Pending]);
-        $campaign->subscribers()->attach($bouncedSubscriber, ['status' => CampaignSubscriberStatus::Pending]);
+
 
         // We expect only the active subscriber attached to the campaign
         $results = $this->repository->findActiveForCampaign($campaign->id);
@@ -146,7 +146,7 @@ class EloquentSubscriberRepositoryTest extends TestCase
         $this->assertCount(1, $results);
         $this->assertTrue($results->contains($activeSubscriber));
         $this->assertFalse($results->contains($unsubscribedSubscriber));
-        $this->assertFalse($results->contains($bouncedSubscriber));
+
         $this->assertFalse($results->contains($otherActiveSubscriber));
     }
 }

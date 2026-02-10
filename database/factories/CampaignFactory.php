@@ -34,7 +34,7 @@ class CampaignFactory extends Factory
     public function scheduled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'scheduled',
+            'status' => 'started',
             'scheduled_at' => fake()->dateTimeBetween('+1 day', '+1 week'),
         ]);
     }

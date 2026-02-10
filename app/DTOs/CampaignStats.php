@@ -11,10 +11,9 @@ final readonly class CampaignStats
         public int $totalSent,
         public int $totalOpened,
         public int $totalClicked,
-        public int $totalBounced,
+
         public int $totalFailed,
         public float $openRate,
         public float $clickRate,
-        public float $bounceRate,
     ) {}
 }

@@ -65,10 +65,7 @@ class DeliveryTracker implements DeliveryTrackerInterface
         // TODO: Implement when click tracking endpoint is added
     }
 
-    public function recordBounce(string $messageId, array $payload): void
-    {
-        // TODO: Implement when webhook processing is added
-    }
+
 
     public function getStats(int $campaignId): CampaignStats
     {
@@ -77,7 +74,7 @@ class DeliveryTracker implements DeliveryTrackerInterface
         $sent = DeliveryLogEvent::Sent->value;
         $opened = DeliveryLogEvent::Opened->value;
         $clicked = DeliveryLogEvent::Clicked->value;
-        $bounced = DeliveryLogEvent::Bounced->value;
+
         $failed = DeliveryLogEvent::Failed->value;
 
         $counts = DeliveryLog::where('campaign_id', $campaignId)
@@ -85,7 +82,6 @@ class DeliveryTracker implements DeliveryTrackerInterface
                 count(*) filter (where event = '{$sent}') as sent,
                 count(*) filter (where event = '{$opened}') as opened,
                 count(*) filter (where event = '{$clicked}') as clicked,
-                count(*) filter (where event = '{$bounced}') as bounced,
                 count(*) filter (where event = '{$failed}') as failed
             ")
             ->first();
@@ -97,11 +93,9 @@ class DeliveryTracker implements DeliveryTrackerInterface
             totalSent: $totalSent,
             totalOpened: (int) $counts->opened,
             totalClicked: (int) $counts->clicked,
-            totalBounced: (int) $counts->bounced,
             totalFailed: (int) $counts->failed,
             openRate: $totalSent > 0 ? round((int) $counts->opened / $totalSent, 4) : 0.0,
             clickRate: $totalSent > 0 ? round((int) $counts->clicked / $totalSent, 4) : 0.0,
-            bounceRate: $totalSent > 0 ? round((int) $counts->bounced / $totalSent, 4) : 0.0,
         );
     }
 
