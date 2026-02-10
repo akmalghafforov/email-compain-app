@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 use App\Models\Campaign;
 use App\Models\Subscriber;
@@ -78,6 +79,11 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
     public function all(): Collection
     {
         return Subscriber::all();
+    }
+
+    public function paginate(int $perPage = 15): LengthAwarePaginator
+    {
+        return Subscriber::latest()->paginate($perPage);
     }
 
     /**

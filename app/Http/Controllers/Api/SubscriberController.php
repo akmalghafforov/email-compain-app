@@ -17,11 +17,12 @@ class SubscriberController extends Controller
         protected SubscriberRepositoryInterface $subscriberRepository
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $subscribers = $this->subscriberRepository->all();
+        $perPage = (int) $request->query('per_page', 10);
+        $subscribers = $this->subscriberRepository->paginate($perPage);
 
-        return ApiResponse::success($subscribers);
+        return ApiResponse::paginated($subscribers);
     }
 
     public function store(Request $request): JsonResponse
