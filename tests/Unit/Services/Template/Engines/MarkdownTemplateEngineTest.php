@@ -7,16 +7,14 @@ use App\Services\Template\Engines\MarkdownTemplateEngine;
 
 class MarkdownTemplateEngineTest extends TestCase
 {
-    /** @test */
-    public function it_supports_markdown_engine(): void
+    public function test_it_supports_markdown_engine(): void
     {
         $engine = new MarkdownTemplateEngine();
         $this->assertTrue($engine->supports('markdown'));
         $this->assertFalse($engine->supports('blade'));
     }
 
-    /** @test */
-    public function it_converts_markdown_to_html(): void
+    public function test_it_converts_markdown_to_html(): void
     {
         $engine = new MarkdownTemplateEngine();
         $markdown = '# Hello World';
@@ -26,8 +24,7 @@ class MarkdownTemplateEngineTest extends TestCase
         $this->assertStringContainsString("<h1>Hello World</h1>", $result);
     }
 
-    /** @test */
-    public function it_renders_with_variables_substitution(): void
+    public function test_it_renders_with_variables_substitution(): void
     {
         $engine = new MarkdownTemplateEngine();
         $markdown = '# Hello {{name}}!';
@@ -40,8 +37,7 @@ class MarkdownTemplateEngineTest extends TestCase
         $this->assertStringContainsString('<h1>Hello Akmal!</h1>', $result);
     }
 
-    /** @test */
-    public function it_works_with_template_rendere()
+    public function test_it_works_with_template_rendere()
     {
         $registry = new \App\Services\Template\TemplateEngineRegistry();
         $registry->register(new MarkdownTemplateEngine());

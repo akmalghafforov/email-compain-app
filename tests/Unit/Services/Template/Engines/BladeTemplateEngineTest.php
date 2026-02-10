@@ -7,16 +7,14 @@ use App\Services\Template\Engines\BladeTemplateEngine;
 
 class BladeTemplateEngineTest extends TestCase
 {
-    /** @test */
-    public function it_supports_blade_engine(): void
+    public function test_it_supports_blade_engine(): void
     {
         $engine = new BladeTemplateEngine();
         $this->assertTrue($engine->supports('blade'));
         $this->assertFalse($engine->supports('markdown'));
     }
 
-    /** @test */
-    public function it_renders_blade_template(): void
+    public function test_it_renders_blade_template(): void
     {
         $engine = new BladeTemplateEngine();
         $template = '<h1>Hello World</h1>';
@@ -26,8 +24,7 @@ class BladeTemplateEngineTest extends TestCase
         $this->assertStringContainsString('<h1>Hello World</h1>', $result);
     }
 
-    /** @test */
-    public function it_renders_with_variable_substitution(): void
+    public function test_it_renders_with_variable_substitution(): void
     {
         $engine = new BladeTemplateEngine();
         $template = '<h1>Hello {{ $name }}!</h1>';
@@ -38,8 +35,7 @@ class BladeTemplateEngineTest extends TestCase
         $this->assertStringContainsString('<h1>Hello Akmal!</h1>', $result);
     }
 
-    /** @test */
-    public function it_renders_blade_directives(): void
+    public function test_it_renders_blade_directives(): void
     {
         $engine = new BladeTemplateEngine();
         $template = '@if($active)<p>Active</p>@else<p>Inactive</p>@endif';
@@ -51,8 +47,7 @@ class BladeTemplateEngineTest extends TestCase
         $this->assertStringNotContainsString('<p>Inactive</p>', $result);
     }
 
-    /** @test */
-    public function it_works_with_template_renderer(): void
+    public function test_it_works_with_template_renderer(): void
     {
         $registry = new \App\Services\Template\TemplateEngineRegistry();
         $registry->register(new BladeTemplateEngine());

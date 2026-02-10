@@ -9,16 +9,14 @@ use App\Services\Template\Engines\TwigTemplateEngine;
 
 class TwigTemplateEngineTest extends TestCase
 {
-    /** @test */
-    public function it_supports_twig_engine(): void
+    public function test_it_supports_twig_engine(): void
     {
         $engine = new TwigTemplateEngine();
         $this->assertTrue($engine->supports('twig'));
         $this->assertFalse($engine->supports('markdown'));
     }
 
-    /** @test */
-    public function it_renders_twig_template(): void
+    public function test_it_renders_twig_template(): void
     {
         $engine = new TwigTemplateEngine();
         $template = '<h1>Hello World</h1>';
@@ -28,8 +26,7 @@ class TwigTemplateEngineTest extends TestCase
         $this->assertStringContainsString('<h1>Hello World</h1>', $result);
     }
 
-    /** @test */
-    public function it_renders_with_variable_substitution(): void
+    public function test_it_renders_with_variable_substitution(): void
     {
         $engine = new TwigTemplateEngine();
         $template = '<h1>Hello {{ name }}!</h1>';
@@ -40,8 +37,7 @@ class TwigTemplateEngineTest extends TestCase
         $this->assertStringContainsString('<h1>Hello Akmal!</h1>', $result);
     }
 
-    /** @test */
-    public function it_renders_twig_control_structures(): void
+    public function test_it_renders_twig_control_structures(): void
     {
         $engine = new TwigTemplateEngine();
         $template = '{% if active %}<p>Active</p>{% else %}<p>Inactive</p>{% endif %}';
@@ -53,8 +49,7 @@ class TwigTemplateEngineTest extends TestCase
         $this->assertStringNotContainsString('<p>Inactive</p>', $result);
     }
 
-    /** @test */
-    public function it_works_with_template_renderer(): void
+    public function test_it_works_with_template_renderer(): void
     {
         $registry = new TemplateEngineRegistry();
         $registry->register(new TwigTemplateEngine());

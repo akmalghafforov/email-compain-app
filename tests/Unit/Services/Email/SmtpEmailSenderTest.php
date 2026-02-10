@@ -15,16 +15,14 @@ class SmtpEmailSenderTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
-    public function it_implements_email_sender_interface(): void
+    public function test_it_implements_email_sender_interface(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $sender = new SmtpEmailSender($mailer);
         $this->assertInstanceOf(EmailSenderInterface::class, $sender);
     }
 
-        /** @test */
-    public function it_sends_email_via_mailer(): void
+    public function test_it_sends_email_via_mailer(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
@@ -65,8 +63,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertInstanceOf(\App\DTOs\SendResult::class, $result);
     }
 
-    /** @test */
-    public function it_returns_send_result_with_message_id(): void
+    public function test_it_returns_send_result_with_message_id(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
@@ -84,8 +81,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertEquals('sent', $result->status);
     }
 
-    /** @test */
-    public function it_throws_exception_when_send_fails(): void
+    public function test_it_throws_exception_when_send_fails(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $subscriber = Mockery::mock(\App\Contracts\Subscriber\Sendable::class);
@@ -104,8 +100,7 @@ class SmtpEmailSenderTest extends TestCase
         $sender->send($subscriber, 'Subject', 'Body');
     }
 
-    /** @test */
-    public function it_sends_batch_to_all_recipients(): void
+    public function test_it_sends_batch_to_all_recipients(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
 
@@ -125,8 +120,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertCount(2, $result->results);
     }
 
-    /** @test */
-    public function it_returns_batch_result_with_unique_message_ids(): void
+    public function test_it_returns_batch_result_with_unique_message_ids(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
 
@@ -144,8 +138,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertCount(2, array_unique($messageIds));
     }
 
-    /** @test */
-    public function it_handles_partial_batch_failure(): void
+    public function test_it_handles_partial_batch_failure(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
 
@@ -172,8 +165,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertCount(2, $result->results);
     }
 
-    /** @test */
-    public function it_handles_all_failing_in_batch(): void
+    public function test_it_handles_all_failing_in_batch(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
 
@@ -194,8 +186,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertTrue($result->hasFailures());
     }
 
-    /** @test */
-    public function it_returns_empty_batch_result_for_no_recipients(): void
+    public function test_it_returns_empty_batch_result_for_no_recipients(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
         $mailer->shouldNotReceive('send');
@@ -209,8 +200,7 @@ class SmtpEmailSenderTest extends TestCase
         $this->assertEmpty($result->results);
     }
 
-    /** @test */
-    public function it_marks_failed_results_with_failed_status_in_batch(): void
+    public function test_it_marks_failed_results_with_failed_status_in_batch(): void
     {
         $mailer = Mockery::mock(\Illuminate\Mail\Mailer::class);
 

@@ -31,14 +31,12 @@ class SendGridEmailSenderTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
-    public function it_implements_email_sender_interface(): void
+    public function test_it_implements_email_sender_interface(): void
     {
         $this->assertInstanceOf(EmailSenderInterface::class, $this->sender);
     }
 
-    /** @test */
-    public function it_logs_email_details(): void
+    public function test_it_logs_email_details(): void
     {
         $subscriber = $this->createSubscriber('test@example.com', 'John Doe');
 
@@ -59,8 +57,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertInstanceOf(SendResult::class, $result);
     }
 
-    /** @test */
-    public function it_returns_send_result_with_message_id(): void
+    public function test_it_returns_send_result_with_message_id(): void
     {
         $subscriber = $this->createSubscriber('test@example.com', 'John');
 
@@ -73,8 +70,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertEquals('sent', $result->status);
     }
 
-    /** @test */
-    public function it_throws_exception_when_logging_fails(): void
+    public function test_it_throws_exception_when_logging_fails(): void
     {
         $subscriber = $this->createSubscriber('test@example.com', 'John');
 
@@ -88,8 +84,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->sender->send($subscriber, 'Subject', '<p>Body</p>');
     }
 
-    /** @test */
-    public function it_sends_batch_to_all_recipients(): void
+    public function test_it_sends_batch_to_all_recipients(): void
     {
         $subscribers = $this->createSubscribers([
             ['email' => 'alice@example.com', 'name' => 'Alice'],
@@ -106,8 +101,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertCount(2, $result->results);
     }
 
-    /** @test */
-    public function it_returns_batch_result_with_unique_message_ids(): void
+    public function test_it_returns_batch_result_with_unique_message_ids(): void
     {
         $subscribers = $this->createSubscribers([
             ['email' => 'alice@example.com', 'name' => 'Alice'],
@@ -122,8 +116,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertCount(2, array_unique($messageIds));
     }
 
-    /** @test */
-    public function it_handles_partial_batch_failure(): void
+    public function test_it_handles_partial_batch_failure(): void
     {
         $subscribers = $this->createSubscribers([
             ['email' => 'alice@example.com', 'name' => 'Alice'],
@@ -147,8 +140,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertCount(2, $result->results);
     }
 
-    /** @test */
-    public function it_handles_all_failing_in_batch(): void
+    public function test_it_handles_all_failing_in_batch(): void
     {
         $subscribers = $this->createSubscribers([
             ['email' => 'fail1@example.com', 'name' => 'Fail1'],
@@ -166,8 +158,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertTrue($result->hasFailures());
     }
 
-    /** @test */
-    public function it_returns_empty_batch_result_for_no_recipients(): void
+    public function test_it_returns_empty_batch_result_for_no_recipients(): void
     {
         $this->logger->shouldNotReceive('info');
 
@@ -179,8 +170,7 @@ class SendGridEmailSenderTest extends TestCase
         $this->assertEmpty($result->results);
     }
 
-    /** @test */
-    public function it_marks_failed_results_with_failed_status_in_batch(): void
+    public function test_it_marks_failed_results_with_failed_status_in_batch(): void
     {
         $subscribers = $this->createSubscribers([
             ['email' => 'good@example.com', 'name' => 'Good'],
