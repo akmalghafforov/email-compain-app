@@ -35,19 +35,9 @@ class TestDataSeeder extends Seeder
             'subject_template' => 'Special Offer Just For You',
         ]);
 
-        // Subscribers — mix of types and statuses
-        $regularSubscribers = Subscriber::factory()
-            ->count(20)
-            ->create();
-
-        $premiumSubscribers = Subscriber::factory()
-            ->premium()
-            ->count(5)
-            ->create();
-
-        $adminSubscribers = Subscriber::factory()
-            ->admin()
-            ->count(2)
+        // Subscribers — mix of statuses
+        $activeSubscribers = Subscriber::factory()
+            ->count(27)
             ->create();
 
         Subscriber::factory()
@@ -80,10 +70,6 @@ class TestDataSeeder extends Seeder
         ]);
 
         // Attach subscribers to campaigns via pivot
-        $activeSubscribers = $regularSubscribers
-            ->merge($premiumSubscribers)
-            ->merge($adminSubscribers);
-
         $draftCampaign->subscribers()->attach(
             $activeSubscribers->pluck('id'),
             ['status' => 'queued'],

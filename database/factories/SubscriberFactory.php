@@ -22,33 +22,11 @@ class SubscriberFactory extends Factory
         return [
             'email' => fake()->unique()->safeEmail(),
             'name' => fake()->name(),
-            'type' => 'regular',
             'status' => 'active',
             'metadata' => null,
             'subscribed_at' => fake()->dateTimeBetween('-1 year', 'now'),
             'unsubscribed_at' => null,
         ];
-    }
-
-    public function premium(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'type' => 'premium',
-            'metadata' => [
-                'preferred_frequency' => fake()->randomElement(['daily', 'weekly', 'monthly']),
-                'preferred_categories' => fake()->randomElements(
-                    ['tech', 'science', 'business', 'health', 'sports'],
-                    fake()->numberBetween(1, 3),
-                ),
-            ],
-        ]);
-    }
-
-    public function admin(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'type' => 'admin',
-        ]);
     }
 
     public function unsubscribed(): static
