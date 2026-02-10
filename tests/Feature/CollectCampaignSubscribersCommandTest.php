@@ -156,14 +156,14 @@ class CollectCampaignSubscribersCommandTest extends TestCase
         $campaign2 = Campaign::factory()->create(['status' => CampaignStatus::Started]);
         Subscriber::factory()->count(2)->create();
 
-        $mock = $this->createMock(Builder::class);
         $callCount = 0;
 
         $this->mock(SubscriberRepositoryInterface::class, function ($mock) use (&$callCount) {
             $mock->shouldReceive('segmentByQuery')
                 ->andReturnUsing(function () use (&$callCount) {
                     $callCount++;
-                    if ($callCount === 1) {
+                    // Fail all 3 retries for campaign1, then succeed for campaign2
+                    if ($callCount <= 3) {
                         throw new \RuntimeException('Database connection lost');
                     }
 
@@ -181,7 +181,7 @@ class CollectCampaignSubscribersCommandTest extends TestCase
         $this->assertCount(2, $campaign2->subscribers);
     }
 
-    public function test_marks_campaign_as_failed_when_exception_occurs(): void
+    public function test_marks_campaign_as_failed_after_exhausting_retries(): void
     {
         $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
         Subscriber::factory()->create();
@@ -192,6 +192,76 @@ class CollectCampaignSubscribersCommandTest extends TestCase
         });
 
         $this->artisan('campaigns:collect-subscribers')
+            ->assertSuccessful();
+
+        $this->assertEquals(CampaignStatus::Failed, $campaign->refresh()->status);
+    }
+
+    public function test_retries_on_failure_and_succeeds(): void
+    {
+        $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        Subscriber::factory()->count(2)->create();
+
+        $callCount = 0;
+
+        $this->mock(SubscriberRepositoryInterface::class, function ($mock) use (&$callCount) {
+            $mock->shouldReceive('segmentByQuery')
+                ->andReturnUsing(function () use (&$callCount) {
+                    $callCount++;
+                    if ($callCount === 1) {
+                        throw new \RuntimeException('Temporary failure');
+                    }
+
+                    return Subscriber::query()
+                        ->where('status', 'active')
+                        ->whereNull('unsubscribed_at');
+                });
+        });
+
+        $this->artisan('campaigns:collect-subscribers')
+            ->assertSuccessful();
+
+        $this->assertEquals(CampaignStatus::SubscribersCollected, $campaign->refresh()->status);
+        $this->assertCount(2, $campaign->subscribers);
+    }
+
+    public function test_retry_skips_already_collected_subscribers(): void
+    {
+        $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        $alreadyAttached = Subscriber::factory()->create();
+        $newSubscriber = Subscriber::factory()->create();
+
+        // Simulate partially collected state from a previous interrupted attempt
+        $campaign->subscribers()->attach($alreadyAttached->id, ['status' => 'pending']);
+
+        $this->artisan('campaigns:collect-subscribers')
+            ->assertSuccessful();
+
+        $campaign->refresh();
+
+        $this->assertEquals(CampaignStatus::SubscribersCollected, $campaign->status);
+        $this->assertCount(2, $campaign->subscribers);
+
+        $this->assertDatabaseHas('campaign_subscriber', [
+            'campaign_id' => $campaign->id,
+            'subscriber_id' => $newSubscriber->id,
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_respects_custom_tries_option(): void
+    {
+        $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        Subscriber::factory()->create();
+
+        $this->mock(SubscriberRepositoryInterface::class, function ($mock) {
+            $mock->shouldReceive('segmentByQuery')
+                ->andThrow(new \RuntimeException('Persistent failure'));
+        });
+
+        $this->artisan('campaigns:collect-subscribers', ['--tries' => 1])
+            ->expectsOutputToContain('attempt 1/1 failed')
+            ->expectsOutputToContain('failed after 1 attempts')
             ->assertSuccessful();
 
         $this->assertEquals(CampaignStatus::Failed, $campaign->refresh()->status);

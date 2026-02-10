@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 
 class CollectCampaignSubscribersCommand extends Command
 {
-    protected $signature = 'campaigns:collect-subscribers';
+    protected $signature = 'campaigns:collect-subscribers {--tries=3 : Maximum attempts per campaign}';
 
     protected $description = 'Collect active subscribers for all started campaigns';
 
@@ -19,13 +19,26 @@ class CollectCampaignSubscribersCommand extends Command
         SubscriberRepositoryInterface $subscriberRepository,
     ): int {
         $campaigns = $campaignRepository->findByStatus(CampaignStatus::Started->value);
+        $maxTries = (int) $this->option('tries');
 
         foreach ($campaigns as $campaign) {
-            try {
-                $this->collectSubscribers($campaign, $subscriberRepository);
-            } catch (\Throwable $e) {
+            $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
+
+            $succeeded = false;
+
+            for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
+                try {
+                    $this->collectSubscribers($campaign, $subscriberRepository);
+                    $succeeded = true;
+                    break;
+                } catch (\Throwable $e) {
+                    $this->warn("Campaign #{$campaign->id} attempt {$attempt}/{$maxTries} failed: {$e->getMessage()}");
+                }
+            }
+
+            if (! $succeeded) {
                 $campaign->update(['status' => CampaignStatus::Failed]);
-                $this->error("Campaign #{$campaign->id} failed: {$e->getMessage()}");
+                $this->error("Campaign #{$campaign->id} failed after {$maxTries} attempts.");
             }
         }
 
@@ -36,15 +49,22 @@ class CollectCampaignSubscribersCommand extends Command
         Campaign $campaign,
         SubscriberRepositoryInterface $subscriberRepository,
     ): void {
-        $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
-
         $query = $subscriberRepository->segmentByQuery([
             'status' => 'active',
             'unsubscribed_at' => null,
-        ]);
+        ])->whereDoesntHave('campaigns', fn ($q) => $q->where('campaigns.id', $campaign->id));
 
-        if ($query->count() === 0) {
-            $campaign->update(['status' => CampaignStatus::Failed]);
+        $remaining = $query->count();
+
+        if ($remaining === 0) {
+            if ($campaign->subscribers()->count() === 0) {
+                $campaign->update(['status' => CampaignStatus::Failed]);
+
+                return;
+            }
+
+            $campaign->update(['status' => CampaignStatus::SubscribersCollected]);
+            $this->info("{$campaign->subscribers()->count()} subscribers collected");
 
             return;
         }
@@ -61,8 +81,10 @@ class CollectCampaignSubscribersCommand extends Command
             $collected += $subscribers->count();
         });
 
+        $total = $campaign->subscribers()->count();
+
         $campaign->update(['status' => CampaignStatus::SubscribersCollected]);
 
-        $this->info("{$collected} subscribers collected");
+        $this->info("{$total} subscribers collected");
     }
 }
