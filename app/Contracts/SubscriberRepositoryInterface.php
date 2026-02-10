@@ -6,6 +6,7 @@ namespace App\Contracts;
 
 use App\Models\Campaign;
 use App\Models\Subscriber;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 interface SubscriberRepositoryInterface
@@ -29,4 +30,12 @@ interface SubscriberRepositoryInterface
      * @return Collection<int, Subscriber>
      */
     public function segmentBy(array $criteria): Collection;
+
+    /**
+     * Get a query builder for segmented subscribers.
+     *
+     * @param array<string, mixed> $criteria
+     * @return Builder<Subscriber>
+     */
+    public function segmentByQuery(array $criteria): Builder;
 }

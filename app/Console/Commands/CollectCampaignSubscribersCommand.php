@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Contracts\CampaignRepositoryInterface;
 use App\Contracts\SubscriberRepositoryInterface;
 use App\Enums\CampaignStatus;
+use App\Models\Campaign;
 use Illuminate\Console\Command;
 
 class CollectCampaignSubscribersCommand extends Command
@@ -20,29 +21,48 @@ class CollectCampaignSubscribersCommand extends Command
         $campaigns = $campaignRepository->findByStatus(CampaignStatus::Started->value);
 
         foreach ($campaigns as $campaign) {
-            $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
-
-            $subscribers = $subscriberRepository->segmentBy([
-                'status' => 'active',
-                'unsubscribed_at' => null,
-            ]);
-
-            if ($subscribers->isEmpty()) {
+            try {
+                $this->collectSubscribers($campaign, $subscriberRepository);
+            } catch (\Throwable $e) {
                 $campaign->update(['status' => CampaignStatus::Failed]);
-                continue;
+                $this->error("Campaign #{$campaign->id} failed: {$e->getMessage()}");
             }
+        }
 
+        return self::SUCCESS;
+    }
+
+    private function collectSubscribers(
+        Campaign $campaign,
+        SubscriberRepositoryInterface $subscriberRepository,
+    ): void {
+        $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
+
+        $query = $subscriberRepository->segmentByQuery([
+            'status' => 'active',
+            'unsubscribed_at' => null,
+        ]);
+
+        if ($query->count() === 0) {
+            $campaign->update(['status' => CampaignStatus::Failed]);
+
+            return;
+        }
+
+        $collected = 0;
+
+        $query->chunkById(1000, function ($subscribers) use ($campaign, &$collected) {
             $pivotData = $subscribers->mapWithKeys(fn ($subscriber) => [
                 $subscriber->id => ['status' => 'pending'],
             ])->all();
 
             $campaign->subscribers()->syncWithoutDetaching($pivotData);
 
-            $campaign->update(['status' => CampaignStatus::SubscribersCollected]);
+            $collected += $subscribers->count();
+        });
 
-            $this->info("{$subscribers->count()} subscribers collected");
-        }
+        $campaign->update(['status' => CampaignStatus::SubscribersCollected]);
 
-        return self::SUCCESS;
+        $this->info("{$collected} subscribers collected");
     }
 }

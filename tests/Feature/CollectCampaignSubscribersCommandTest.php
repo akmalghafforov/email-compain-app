@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\SubscriberRepositoryInterface;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\Subscriber;
@@ -147,5 +148,52 @@ class CollectCampaignSubscribersCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertEquals(1, $campaign->subscribers()->count());
+    }
+
+    public function test_continues_processing_remaining_campaigns_when_one_fails(): void
+    {
+        $campaign1 = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        $campaign2 = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        Subscriber::factory()->count(2)->create();
+
+        $mock = $this->createMock(Builder::class);
+        $callCount = 0;
+
+        $this->mock(SubscriberRepositoryInterface::class, function ($mock) use (&$callCount) {
+            $mock->shouldReceive('segmentByQuery')
+                ->andReturnUsing(function () use (&$callCount) {
+                    $callCount++;
+                    if ($callCount === 1) {
+                        throw new \RuntimeException('Database connection lost');
+                    }
+
+                    return Subscriber::query()
+                        ->where('status', 'active')
+                        ->whereNull('unsubscribed_at');
+                });
+        });
+
+        $this->artisan('campaigns:collect-subscribers')
+            ->assertSuccessful();
+
+        $this->assertEquals(CampaignStatus::Failed, $campaign1->refresh()->status);
+        $this->assertEquals(CampaignStatus::SubscribersCollected, $campaign2->refresh()->status);
+        $this->assertCount(2, $campaign2->subscribers);
+    }
+
+    public function test_marks_campaign_as_failed_when_exception_occurs(): void
+    {
+        $campaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        Subscriber::factory()->create();
+
+        $this->mock(SubscriberRepositoryInterface::class, function ($mock) {
+            $mock->shouldReceive('segmentByQuery')
+                ->andThrow(new \RuntimeException('Unexpected error'));
+        });
+
+        $this->artisan('campaigns:collect-subscribers')
+            ->assertSuccessful();
+
+        $this->assertEquals(CampaignStatus::Failed, $campaign->refresh()->status);
     }
 }

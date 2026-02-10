@@ -2,6 +2,7 @@
 
 namespace App\Services\Subscriber;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 use App\Models\Campaign;
@@ -40,6 +41,17 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
      */
     public function segmentBy(array $criteria): Collection
     {
+        return $this->segmentByQuery($criteria)->get();
+    }
+
+    /**
+     * Get a query builder for segmented subscribers.
+     *
+     * @param array<string, mixed> $criteria
+     * @return Builder<Subscriber>
+     */
+    public function segmentByQuery(array $criteria): Builder
+    {
         $query = Subscriber::query();
 
         foreach ($criteria as $field => $value) {
@@ -52,6 +64,6 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
             }
         }
 
-        return $query->get();
+        return $query;
     }
 }
