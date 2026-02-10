@@ -2,11 +2,13 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+
+use App\Models\Campaign;
+use App\Enums\CampaignStatus;
 use App\Contracts\CampaignRepositoryInterface;
 use App\Contracts\SubscriberRepositoryInterface;
-use App\Enums\CampaignStatus;
-use App\Models\Campaign;
-use Illuminate\Console\Command;
 
 class CollectCampaignSubscribersCommand extends Command
 {
@@ -22,23 +24,35 @@ class CollectCampaignSubscribersCommand extends Command
         $maxTries = (int) $this->option('tries');
 
         foreach ($campaigns as $campaign) {
-            $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
+            $lock = Cache::lock("campaign:{$campaign->id}:collecting-subscribers", 10 * 60);
 
-            $succeeded = false;
+            if (! $lock->get()) {
+                $this->info("Campaign #{$campaign->id} is already being processed, skipping.");
 
-            for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
-                try {
-                    $this->collectSubscribers($campaign, $subscriberRepository);
-                    $succeeded = true;
-                    break;
-                } catch (\Throwable $e) {
-                    $this->warn("Campaign #{$campaign->id} attempt {$attempt}/{$maxTries} failed: {$e->getMessage()}");
-                }
+                continue;
             }
 
-            if (! $succeeded) {
-                $campaign->update(['status' => CampaignStatus::Failed]);
-                $this->error("Campaign #{$campaign->id} failed after {$maxTries} attempts.");
+            try {
+                $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
+
+                $succeeded = false;
+
+                for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
+                    try {
+                        $this->collectSubscribers($campaign, $subscriberRepository);
+                        $succeeded = true;
+                        break;
+                    } catch (\Throwable $e) {
+                        $this->warn("Campaign #{$campaign->id} attempt {$attempt}/{$maxTries} failed: {$e->getMessage()}");
+                    }
+                }
+
+                if (! $succeeded) {
+                    $campaign->update(['status' => CampaignStatus::Failed]);
+                    $this->error("Campaign #{$campaign->id} failed after {$maxTries} attempts.");
+                }
+            } finally {
+                $lock->release();
             }
         }
 

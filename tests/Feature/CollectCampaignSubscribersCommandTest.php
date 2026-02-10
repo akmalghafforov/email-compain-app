@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Contracts\SubscriberRepositoryInterface;
-use App\Enums\CampaignStatus;
+use Tests\TestCase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
 use App\Models\Campaign;
 use App\Models\Subscriber;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Enums\CampaignStatus;
+use App\Contracts\SubscriberRepositoryInterface;
 
 class CollectCampaignSubscribersCommandTest extends TestCase
 {
@@ -247,6 +249,30 @@ class CollectCampaignSubscribersCommandTest extends TestCase
             'subscriber_id' => $newSubscriber->id,
             'status' => 'pending',
         ]);
+    }
+
+    public function test_skips_campaign_when_lock_is_already_held(): void
+    {
+        $lockedCampaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        $freeCampaign = Campaign::factory()->create(['status' => CampaignStatus::Started]);
+        Subscriber::factory()->count(2)->create();
+
+        $lock = Cache::lock("campaign:{$lockedCampaign->id}:collecting-subscribers", 10 * 60);
+        $lock->get();
+
+        try {
+            $this->artisan('campaigns:collect-subscribers')
+                ->expectsOutputToContain("Campaign #{$lockedCampaign->id} is already being processed, skipping.")
+                ->assertSuccessful();
+
+            $this->assertEquals(CampaignStatus::Started, $lockedCampaign->refresh()->status);
+            $this->assertCount(0, $lockedCampaign->subscribers);
+
+            $this->assertEquals(CampaignStatus::SubscribersCollected, $freeCampaign->refresh()->status);
+            $this->assertCount(2, $freeCampaign->subscribers);
+        } finally {
+            $lock->release();
+        }
     }
 
     public function test_respects_custom_tries_option(): void
