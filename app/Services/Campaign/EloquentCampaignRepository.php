@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 
 use App\Models\Campaign;
 use App\Contracts\CampaignRepositoryInterface;
+use App\Enums\CampaignStatus;
 
 class EloquentCampaignRepository implements CampaignRepositoryInterface
 {
@@ -42,10 +43,10 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
         return Campaign::where('status', $status)->get();
     }
 
-    public function markAsSending(int $id): Campaign
+    public function markAsStarted(int $id): Campaign
     {
         $campaign = $this->findOrFail($id);
-        $campaign->update(['status' => 'sending']);
+        $campaign->update(['status' => CampaignStatus::Started]);
 
         return $campaign;
     }

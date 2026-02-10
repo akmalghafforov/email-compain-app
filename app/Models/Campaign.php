@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CampaignStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,7 @@ class Campaign extends Model
     protected function casts(): array
     {
         return [
+            'status' => CampaignStatus::class,
             'scheduled_at' => 'datetime',
             'sent_at' => 'datetime',
         ];

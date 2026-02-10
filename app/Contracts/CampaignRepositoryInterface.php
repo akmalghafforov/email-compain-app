@@ -41,7 +41,7 @@ interface CampaignRepositoryInterface
     public function findByStatus(string $status): Collection;
 
     /**
-     * Mark a campaign as sending.
+     * Mark a campaign as started.
      */
-    public function markAsSending(int $id): Campaign;
+    public function markAsStarted(int $id): Campaign;
 }

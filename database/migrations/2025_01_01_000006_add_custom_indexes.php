@@ -7,6 +7,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // Partial index for active subscribers (PostgreSQL-specific)
         DB::statement("CREATE INDEX idx_subscribers_active ON subscribers (email) WHERE status = 'active'");
 
