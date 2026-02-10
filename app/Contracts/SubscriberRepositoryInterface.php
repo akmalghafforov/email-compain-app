@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
-use App\Models\Subscriber;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
+
+use App\Models\Subscriber;
 
 interface SubscriberRepositoryInterface
 {
@@ -33,8 +34,40 @@ interface SubscriberRepositoryInterface
     /**
      * Get a query builder for segmented subscribers.
      *
+     *
      * @param array<string, mixed> $criteria
      * @return Builder<Subscriber>
      */
     public function segmentByQuery(array $criteria): Builder;
+
+    /**
+     * Get all subscribers.
+     *
+     * @return Collection<int, Subscriber>
+     */
+    public function all(): Collection;
+
+    /**
+     * Create a new subscriber.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function create(array $data): Subscriber;
+
+    /**
+     * Update an existing subscriber.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function update(int $id, array $data): Subscriber;
+
+    /**
+     * Delete a subscriber.
+     */
+    public function delete(int $id): bool;
+
+    /**
+     * Find a subscriber by ID.
+     */
+    public function find(int $id): ?Subscriber;
 }

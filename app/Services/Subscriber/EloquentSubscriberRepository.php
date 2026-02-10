@@ -2,14 +2,13 @@
 
 namespace App\Services\Subscriber;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
 
 use App\Models\Campaign;
 use App\Models\Subscriber;
-use App\Contracts\SubscriberRepositoryInterface;
-
 use App\Enums\SubscriberStatus;
+use App\Contracts\SubscriberRepositoryInterface;
 
 class EloquentSubscriberRepository implements SubscriberRepositoryInterface
 {
@@ -69,5 +68,64 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
         }
 
         return $query;
+    }
+
+    /**
+     * Get all subscribers.
+     *
+     * @return Collection<int, Subscriber>
+     */
+    public function all(): Collection
+    {
+        return Subscriber::all();
+    }
+
+    /**
+     * Create a new subscriber.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function create(array $data): Subscriber
+    {
+        return Subscriber::create($data);
+    }
+
+    /**
+     * Update an existing subscriber.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function update(int $id, array $data): Subscriber
+    {
+        $subscriber = $this->find($id);
+
+        if ($subscriber) {
+            $subscriber->update($data);
+            return $subscriber;
+        }
+
+        throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Subscriber with ID {$id} not found.");
+    }
+
+    /**
+     * Delete a subscriber.
+     */
+    public function delete(int $id): bool
+    {
+        $subscriber = $this->find($id);
+
+        if ($subscriber) {
+            return $subscriber->delete();
+        }
+
+        return false;
+    }
+
+    /**
+     * Find a subscriber by ID.
+     */
+    public function find(int $id): ?Subscriber
+    {
+        return Subscriber::find($id);
     }
 }
