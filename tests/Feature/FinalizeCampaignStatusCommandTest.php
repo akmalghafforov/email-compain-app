@@ -104,10 +104,10 @@ class FinalizeCampaignStatusCommandTest extends TestCase
 
         $mock = $this->mock(DeliveryTrackerInterface::class);
         $mock->shouldReceive('getStats')
-            ->with(\Mockery::on(fn (Campaign $c) => $c->id === $campaign1->id))
+            ->with($campaign1->id)
             ->andReturn($stats1);
         $mock->shouldReceive('getStats')
-            ->with(\Mockery::on(fn (Campaign $c) => $c->id === $campaign2->id))
+            ->with($campaign2->id)
             ->andReturn($stats2);
 
         $this->artisan('campaigns:finalize-status')

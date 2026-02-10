@@ -43,5 +43,5 @@ interface DeliveryTrackerInterface
      *
      * @throws \Throwable If stats cannot be computed
      */
-    public function getStats(Campaign $campaign): CampaignStats;
+    public function getStats(int $campaignId): CampaignStats;
 }

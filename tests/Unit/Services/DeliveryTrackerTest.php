@@ -117,7 +117,7 @@ class DeliveryTrackerTest extends TestCase
         $this->tracker->recordSent($campaign, $subscriber2, new SendResult('msg-2', 'sent'));
         $this->tracker->recordFailed($campaign, $subscriber3, 'Bounce');
 
-        $stats = $this->tracker->getStats($campaign);
+        $stats = $this->tracker->getStats($campaign->id);
 
         $this->assertInstanceOf(CampaignStats::class, $stats);
         $this->assertEquals(3, $stats->totalRecipients);
@@ -134,7 +134,7 @@ class DeliveryTrackerTest extends TestCase
 
         $this->tracker->recordFailed($campaign, $subscriber, 'Error');
 
-        $stats = $this->tracker->getStats($campaign);
+        $stats = $this->tracker->getStats($campaign->id);
 
         $this->assertEquals(0.0, $stats->openRate);
         $this->assertEquals(0.0, $stats->clickRate);

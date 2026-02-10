@@ -41,7 +41,7 @@ class FinalizeCampaignStatusCommand extends Command
         CampaignRepositoryInterface $campaignRepository,
         DeliveryTrackerInterface $deliveryTracker,
     ): void {
-        $stats = $deliveryTracker->getStats($campaign);
+        $stats = $deliveryTracker->getStats($campaign->id);
 
         $pending = $stats->totalRecipients - $stats->totalSent - $stats->totalFailed;
 
@@ -53,7 +53,7 @@ class FinalizeCampaignStatusCommand extends Command
 
         $status = $this->resolveStatus($stats->totalSent, $stats->totalFailed);
 
-        $campaignRepository->updateStatus($campaign, $status);
+        $campaignRepository->updateStatus($campaign->id, $status);
 
         $this->info("Campaign #{$campaign->id}: finalized as {$status->value} (sent: {$stats->totalSent}, failed: {$stats->totalFailed}).");
     }

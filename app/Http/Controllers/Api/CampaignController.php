@@ -7,11 +7,13 @@ use Illuminate\Http\JsonResponse;
 
 use App\Http\Controllers\Controller;
 use App\Contracts\CampaignRepositoryInterface;
+use App\Contracts\DeliveryTrackerInterface;
 
 class CampaignController extends Controller
 {
     public function __construct(
         private readonly CampaignRepositoryInterface $campaignRepository,
+        private readonly DeliveryTrackerInterface $deliveryTracker,
     ) {}
 
     public function store(Request $request): JsonResponse
@@ -37,6 +39,8 @@ class CampaignController extends Controller
 
     public function stats(string $id): JsonResponse
     {
-        //
+        $stats = $this->deliveryTracker->getStats((int) $id);
+
+        return response()->json($stats);
     }
 }

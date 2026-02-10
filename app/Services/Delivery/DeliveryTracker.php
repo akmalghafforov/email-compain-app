@@ -67,11 +67,11 @@ class DeliveryTracker implements DeliveryTrackerInterface
         // TODO: Implement when webhook processing is added
     }
 
-    public function getStats(Campaign $campaign): CampaignStats
+    public function getStats(int $campaignId): CampaignStats
     {
-        $totalRecipients = $campaign->subscribers()->count();
+        $totalRecipients = Campaign::findOrFail($campaignId)->subscribers()->count();
 
-        $counts = DeliveryLog::where('campaign_id', $campaign->id)
+        $counts = DeliveryLog::where('campaign_id', $campaignId)
             ->selectRaw("
                 count(*) filter (where event = 'sent') as sent,
                 count(*) filter (where event = 'opened') as opened,

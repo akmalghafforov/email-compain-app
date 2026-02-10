@@ -40,7 +40,7 @@ class SendCampaignEmailsCommand extends Command
 
         $dispatched = 0;
 
-        $campaignRepository->chunkPendingSubscribers($campaign, 50, function (array $subscriberIds) use ($campaign, &$dispatched) {
+        $campaignRepository->chunkPendingSubscribers($campaign->id, 50, function (array $subscriberIds) use ($campaign, &$dispatched) {
             SendCampaignEmailJob::dispatch($campaign, $subscriberIds);
 
             $dispatched += count($subscriberIds);

@@ -84,7 +84,7 @@ class SendCampaignEmailJob implements ShouldQueue
         $reason = 'Job failed: ' . ($exception?->getMessage() ?? 'Unknown error');
 
         app(CampaignRepositoryInterface::class)
-            ->markPendingSubscribersAsFailed($campaign, $this->subscriberIds, $reason);
+            ->markPendingSubscribersAsFailed($campaign->id, $this->subscriberIds, $reason);
 
         Log::error("SendCampaignEmailJob failed for campaign #{$campaign->id}", [
             'subscriber_ids' => $this->subscriberIds,
