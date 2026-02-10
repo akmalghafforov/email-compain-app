@@ -10,7 +10,7 @@ use App\Models\Campaign;
 use App\Models\Template;
 use App\Enums\CampaignStatus;
 use App\Contracts\CampaignRepositoryInterface;
-use App\Services\Campaign\EloquentCampaignRepository;
+use App\Repositories\EloquentCampaignRepository;
 
 class EloquentCampaignRepositoryTest extends TestCase
 {

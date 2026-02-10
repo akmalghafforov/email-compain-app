@@ -8,8 +8,8 @@ use App\Services\Delivery\DeliveryTracker;
 use App\Contracts\DeliveryTrackerInterface;
 use App\Contracts\CampaignRepositoryInterface;
 use App\Contracts\SubscriberRepositoryInterface;
-use App\Services\Campaign\EloquentCampaignRepository;
-use App\Services\Subscriber\EloquentSubscriberRepository;
+use App\Repositories\EloquentCampaignRepository;
+use App\Repositories\EloquentSubscriberRepository;
 
 class AppServiceProvider extends ServiceProvider
 {

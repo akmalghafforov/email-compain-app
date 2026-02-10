@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Campaign;
+namespace App\Repositories;
 
 use Closure;
 use Illuminate\Support\Collection;
@@ -10,9 +10,9 @@ use Illuminate\Support\Collection;
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
 use App\Models\CampaignSubscriber;
+use App\Enums\CampaignSubscriberStatus;
 use App\Contracts\CampaignRepositoryInterface;
 
-use App\Enums\CampaignSubscriberStatus;
 
 class EloquentCampaignRepository implements CampaignRepositoryInterface
 {
