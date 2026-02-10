@@ -41,15 +41,17 @@ class CampaignStatsTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'totalRecipients' => 100,
-                'totalSent' => 80,
-                'totalOpened' => 40,
-                'totalClicked' => 20,
-                'totalBounced' => 5,
-                'totalFailed' => 15,
-                'openRate' => 0.5,
-                'clickRate' => 0.25,
-                'bounceRate' => 0.0625,
+                'data' => [
+                    'totalRecipients' => 100,
+                    'totalSent' => 80,
+                    'totalOpened' => 40,
+                    'totalClicked' => 20,
+                    'totalBounced' => 5,
+                    'totalFailed' => 15,
+                    'openRate' => 0.5,
+                    'clickRate' => 0.25,
+                    'bounceRate' => 0.0625,
+                ],
             ]);
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 
+use App\Http\ApiResponse;
 use App\Enums\SubscriberStatus;
 use App\Http\Controllers\Controller;
 use App\Contracts\Repositories\SubscriberRepositoryInterface;
@@ -20,9 +21,7 @@ class SubscriberController extends Controller
     {
         $subscribers = $this->subscriberRepository->all();
 
-        return response()->json([
-            'data' => $subscribers,
-        ]);
+        return ApiResponse::success($subscribers);
     }
 
     public function store(Request $request): JsonResponse
@@ -36,36 +35,19 @@ class SubscriberController extends Controller
 
         $subscriber = $this->subscriberRepository->create($validated);
 
-        return response()->json([
-            'data' => $subscriber,
-            'message' => 'Subscriber created successfully.',
-        ], 201);
+        return ApiResponse::created($subscriber, 'Subscriber created successfully.');
     }
 
     public function show(string $id): JsonResponse
     {
-        $subscriber = $this->subscriberRepository->find((int) $id);
+        $subscriber = $this->subscriberRepository->findOrFail((int) $id);
 
-        if (! $subscriber) {
-            return response()->json([
-                'message' => 'Subscriber not found.',
-            ], 404);
-        }
-
-        return response()->json([
-            'data' => $subscriber,
-        ]);
+        return ApiResponse::success($subscriber);
     }
 
     public function update(Request $request, string $id): JsonResponse
     {
-        $subscriber = $this->subscriberRepository->find((int) $id);
-
-        if (! $subscriber) {
-            return response()->json([
-                'message' => 'Subscriber not found.',
-            ], 404);
-        }
+        $subscriber = $this->subscriberRepository->findOrFail((int) $id);
 
         $validated = $request->validate([
             'email' => [
@@ -81,32 +63,20 @@ class SubscriberController extends Controller
 
         $updatedSubscriber = $this->subscriberRepository->update($subscriber->id, $validated);
 
-        return response()->json([
-            'data' => $updatedSubscriber,
-            'message' => 'Subscriber updated successfully.',
-        ]);
+        return ApiResponse::success($updatedSubscriber, 'Subscriber updated successfully.');
     }
 
     public function destroy(string $id): JsonResponse
     {
-        $deleted = $this->subscriberRepository->delete((int) $id);
+        $this->subscriberRepository->findOrFail((int) $id);
+        $this->subscriberRepository->delete((int) $id);
 
-        if (! $deleted) {
-            return response()->json([
-                'message' => 'Subscriber not found or could not be deleted.',
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Subscriber deleted successfully.',
-        ]);
+        return ApiResponse::message('Subscriber deleted successfully.');
     }
 
     public function import(Request $request): JsonResponse
     {
         // TODO: Implement import functionality later or as a separate task
-        return response()->json([
-            'message' => 'Import functionality not implemented yet.',
-        ], 501);
+        return ApiResponse::error('Import functionality not implemented yet.', 501);
     }
 }

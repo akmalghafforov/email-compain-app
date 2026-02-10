@@ -128,4 +128,14 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
     {
         return Subscriber::find($id);
     }
+
+    /**
+     * Find a subscriber by ID or fail.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function findOrFail(int $id): Subscriber
+    {
+        return Subscriber::findOrFail($id);
+    }
 }

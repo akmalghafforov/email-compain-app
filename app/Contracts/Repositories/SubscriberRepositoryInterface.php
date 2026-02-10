@@ -68,4 +68,11 @@ interface SubscriberRepositoryInterface
      * Find a subscriber by ID.
      */
     public function find(int $id): ?Subscriber;
+
+    /**
+     * Find a subscriber by ID or fail.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function findOrFail(int $id): Subscriber;
 }
