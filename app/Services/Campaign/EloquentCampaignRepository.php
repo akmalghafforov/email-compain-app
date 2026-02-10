@@ -75,5 +75,9 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
                 'failed_reason' => $reason,
             ]);
     }
-}
 
+    public function updateStatus(Campaign $campaign, CampaignStatus $status): void
+    {
+        $campaign->update(['status' => $status]);
+    }
+}

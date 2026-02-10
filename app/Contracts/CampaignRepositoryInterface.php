@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Support\Collection;
 
 use App\Models\Campaign;
+use App\Enums\CampaignStatus;
 
 interface CampaignRepositoryInterface
 {
@@ -63,4 +64,9 @@ interface CampaignRepositoryInterface
      * @param  array<int>  $subscriberIds
      */
     public function markPendingSubscribersAsFailed(Campaign $campaign, array $subscriberIds, string $reason): void;
+
+    /**
+     * Update the status of a campaign.
+     */
+    public function updateStatus(Campaign $campaign, CampaignStatus $status): void;
 }
