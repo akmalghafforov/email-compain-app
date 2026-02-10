@@ -22,7 +22,7 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
         $campaign = Campaign::findOrFail($campaignId);
 
         return $campaign->subscribers()
-            ->wherePivot('status', SubscriberStatus::Active->value)
+
             ->where('subscribers.status', SubscriberStatus::Active->value)
             ->whereNull('subscribers.unsubscribed_at')
             ->get();
