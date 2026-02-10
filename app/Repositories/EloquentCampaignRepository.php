@@ -1,11 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Repositories;
 
 use Closure;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
@@ -16,6 +15,11 @@ use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 class EloquentCampaignRepository implements CampaignRepositoryInterface
 {
+    public function paginate(int $perPage = 15): LengthAwarePaginator
+    {
+        return Campaign::latest()->paginate($perPage);
+    }
+
     public function find(int $id): ?Campaign
     {
         return Campaign::find($id);

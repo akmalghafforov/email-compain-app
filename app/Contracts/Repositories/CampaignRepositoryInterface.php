@@ -4,12 +4,18 @@ namespace App\Contracts\Repositories;
 
 use Closure;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
 
 interface CampaignRepositoryInterface
 {
+    /**
+     * Get a paginated list of campaigns.
+     */
+    public function paginate(int $perPage = 15): LengthAwarePaginator;
+
     /**
      * Find a campaign by its ID.
      */

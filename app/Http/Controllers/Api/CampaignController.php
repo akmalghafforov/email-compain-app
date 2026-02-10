@@ -17,6 +17,14 @@ class CampaignController extends Controller
         private readonly DeliveryTrackerInterface $deliveryTracker,
     ) {}
 
+    public function index(Request $request): JsonResponse
+    {
+        $perPage = (int) $request->query('per_page', 10);
+        $campaigns = $this->campaignRepository->paginate($perPage);
+
+        return ApiResponse::paginated($campaigns);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $campaign = $this->campaignRepository->create($request->all());

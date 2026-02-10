@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CampaignController;
 use App\Http\Controllers\Api\TemplateController;
 use App\Http\Controllers\Api\SubscriberController;
 
+Route::get('/campaigns', [CampaignController::class, 'index']);
 Route::post('/campaigns', [CampaignController::class, 'store']);
 Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
 Route::post('/campaigns/{id}/dispatch', [CampaignController::class, 'dispatch']);
