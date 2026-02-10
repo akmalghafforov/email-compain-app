@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+use App\Services\Delivery\DeliveryTracker;
+use App\Contracts\DeliveryTrackerInterface;
 use App\Contracts\CampaignRepositoryInterface;
 use App\Contracts\SubscriberRepositoryInterface;
 use App\Services\Campaign\EloquentCampaignRepository;
@@ -24,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SubscriberRepositoryInterface::class,
             EloquentSubscriberRepository::class
+        );
+
+        $this->app->bind(
+            DeliveryTrackerInterface::class,
+            DeliveryTracker::class
         );
     }
 

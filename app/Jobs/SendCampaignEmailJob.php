@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Log;
 
 use App\Models\Campaign;
 use App\Models\Subscriber;
-use App\Models\DeliveryLog;
 use App\Contracts\EmailSenderInterface;
-use App\Contracts\CampaignRepositoryInterface;
+use App\Contracts\DeliveryTrackerInterface;
 use App\Services\Template\TemplateRenderer;
+use App\Contracts\CampaignRepositoryInterface;
 
 class SendCampaignEmailJob implements ShouldQueue
 {
@@ -35,14 +35,17 @@ class SendCampaignEmailJob implements ShouldQueue
         public readonly array $subscriberIds,
     ) {}
 
-    public function handle(EmailSenderInterface $emailSender, TemplateRenderer $templateRenderer): void
-    {
+    public function handle(
+        EmailSenderInterface $emailSender,
+        TemplateRenderer $templateRenderer,
+        DeliveryTrackerInterface $deliveryTracker,
+    ): void {
         $campaign = $this->campaign->loadMissing('template');
         $template = $campaign->template;
         $subscribers = Subscriber::whereIn('id', $this->subscriberIds)->get();
 
         foreach ($subscribers as $subscriber) {
-            $this->sendToSubscriber($subscriber, $campaign, $template, $emailSender, $templateRenderer);
+            $this->sendToSubscriber($subscriber, $campaign, $template, $emailSender, $templateRenderer, $deliveryTracker);
         }
     }
 
@@ -52,6 +55,7 @@ class SendCampaignEmailJob implements ShouldQueue
         $template,
         EmailSenderInterface $emailSender,
         TemplateRenderer $templateRenderer,
+        DeliveryTrackerInterface $deliveryTracker,
     ): void {
         try {
             $renderedBody = $templateRenderer->render($template, [
@@ -61,33 +65,9 @@ class SendCampaignEmailJob implements ShouldQueue
 
             $result = $emailSender->send($subscriber, $campaign->subject, $renderedBody);
 
-            $campaign->subscribers()->updateExistingPivot($subscriber->id, [
-                'status' => 'sent',
-                'sent_at' => now(),
-            ]);
-
-            DeliveryLog::create([
-                'campaign_id' => $campaign->id,
-                'subscriber_id' => $subscriber->id,
-                'channel' => $campaign->sender_channel,
-                'event' => 'sent',
-                'payload' => ['message_id' => $result->messageId],
-                'occurred_at' => now(),
-            ]);
+            $deliveryTracker->recordSent($campaign, $subscriber, $result);
         } catch (\Throwable $e) {
-            $campaign->subscribers()->updateExistingPivot($subscriber->id, [
-                'status' => 'failed',
-                'failed_reason' => $e->getMessage(),
-            ]);
-
-            DeliveryLog::create([
-                'campaign_id' => $campaign->id,
-                'subscriber_id' => $subscriber->id,
-                'channel' => $campaign->sender_channel,
-                'event' => 'failed',
-                'payload' => ['error' => $e->getMessage()],
-                'occurred_at' => now(),
-            ]);
+            $deliveryTracker->recordFailed($campaign, $subscriber, $e->getMessage());
 
             Log::error("Failed to send email for campaign #{$campaign->id} to subscriber #{$subscriber->id}", [
                 'error' => $e->getMessage(),

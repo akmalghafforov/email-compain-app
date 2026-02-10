@@ -17,6 +17,11 @@ interface DeliveryTrackerInterface
     public function recordSent(Campaign $campaign, Sendable $subscriber, SendResult $result): void;
 
     /**
+     * Record that an email failed to send.
+     */
+    public function recordFailed(Campaign $campaign, Sendable $subscriber, string $reason): void;
+
+    /**
      * Record that an email was opened via tracking pixel.
      */
     public function recordOpen(string $trackingId): void;
