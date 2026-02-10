@@ -53,10 +53,10 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
         return $campaign;
     }
 
-    public function chunkPendingSubscribers(Campaign $campaign, int $chunkSize, Closure $callback): void
+    public function chunkPendingSubscribers(int $campaignId, int $chunkSize, Closure $callback): void
     {
         CampaignSubscriber::query()
-            ->where('campaign_id', $campaign->id)
+            ->where('campaign_id', $campaignId)
             ->where('status', 'pending')
             ->select('id', 'subscriber_id')
             ->chunkById($chunkSize, function ($pivotRecords) use ($callback) {
@@ -64,10 +64,10 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             });
     }
 
-    public function markPendingSubscribersAsFailed(Campaign $campaign, array $subscriberIds, string $reason): void
+    public function markPendingSubscribersAsFailed(int $campaignId, array $subscriberIds, string $reason): void
     {
         CampaignSubscriber::query()
-            ->where('campaign_id', $campaign->id)
+            ->where('campaign_id', $campaignId)
             ->whereIn('subscriber_id', $subscriberIds)
             ->where('status', 'pending')
             ->update([
@@ -76,8 +76,9 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             ]);
     }
 
-    public function updateStatus(Campaign $campaign, CampaignStatus $status): void
+    public function updateStatus(int $campaignId, CampaignStatus $status): void
     {
+        $campaign = $this->findOrFail($campaignId);
         $campaign->update(['status' => $status]);
     }
 }

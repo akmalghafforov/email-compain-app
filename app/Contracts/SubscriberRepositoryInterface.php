@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
-use App\Models\Campaign;
 use App\Models\Subscriber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -16,7 +15,7 @@ interface SubscriberRepositoryInterface
      *
      * @return Collection<int, Subscriber>
      */
-    public function findActiveForCampaign(Campaign $campaign): Collection;
+    public function findActiveForCampaign(int $campaignId): Collection;
 
     /**
      * Find a subscriber by their email address.

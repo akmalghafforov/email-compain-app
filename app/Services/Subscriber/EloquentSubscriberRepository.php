@@ -16,8 +16,10 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
      *
      * @return Collection<int, Subscriber>
      */
-    public function findActiveForCampaign(Campaign $campaign): Collection
+    public function findActiveForCampaign(int $campaignId): Collection
     {
+        $campaign = Campaign::findOrFail($campaignId);
+
         return $campaign->subscribers()
             ->wherePivot('status', 'active')
             ->where('subscribers.status', 'active')
