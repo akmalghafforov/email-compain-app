@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 
 use App\Enums\SubscriberStatus;
 use App\Http\Controllers\Controller;
-use App\Contracts\SubscriberRepositoryInterface;
+use App\Contracts\Repositories\SubscriberRepositoryInterface;
 
 class SubscriberController extends Controller
 {

@@ -1,8 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Contracts;
+namespace App\Contracts\Repositories;
 
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;

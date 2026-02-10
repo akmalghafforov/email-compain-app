@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Campaign;
 use App\Models\Subscriber;
 use App\Enums\CampaignStatus;
-use App\Contracts\SubscriberRepositoryInterface;
+use App\Contracts\Repositories\SubscriberRepositoryInterface;
 
 class CollectCampaignSubscribersCommandTest extends TestCase
 {

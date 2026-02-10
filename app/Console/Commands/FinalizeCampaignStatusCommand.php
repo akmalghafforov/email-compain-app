@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
 use App\Contracts\DeliveryTrackerInterface;
-use App\Contracts\CampaignRepositoryInterface;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 class FinalizeCampaignStatusCommand extends Command
 {

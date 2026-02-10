@@ -6,10 +6,10 @@ use Illuminate\Support\ServiceProvider;
 
 use App\Services\Delivery\DeliveryTracker;
 use App\Contracts\DeliveryTrackerInterface;
-use App\Contracts\CampaignRepositoryInterface;
-use App\Contracts\SubscriberRepositoryInterface;
 use App\Repositories\EloquentCampaignRepository;
 use App\Repositories\EloquentSubscriberRepository;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
+use App\Contracts\Repositories\SubscriberRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {

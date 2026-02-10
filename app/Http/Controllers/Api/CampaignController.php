@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 
 use App\Http\Controllers\Controller;
 use App\Contracts\DeliveryTrackerInterface;
-use App\Contracts\CampaignRepositoryInterface;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 class CampaignController extends Controller
 {

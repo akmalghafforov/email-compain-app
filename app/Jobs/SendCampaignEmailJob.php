@@ -16,7 +16,7 @@ use App\Models\Subscriber;
 use App\Contracts\EmailSenderInterface;
 use App\Contracts\DeliveryTrackerInterface;
 use App\Services\Template\TemplateRenderer;
-use App\Contracts\CampaignRepositoryInterface;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 class SendCampaignEmailJob implements ShouldQueue
 {

@@ -9,8 +9,8 @@ use App\Models\Campaign;
 use App\Enums\CampaignStatus;
 use App\Enums\SubscriberStatus;
 use App\Enums\CampaignSubscriberStatus;
-use App\Contracts\CampaignRepositoryInterface;
-use App\Contracts\SubscriberRepositoryInterface;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
+use App\Contracts\Repositories\SubscriberRepositoryInterface;
 
 class CollectCampaignSubscribersCommand extends Command
 {
@@ -35,13 +35,13 @@ class CollectCampaignSubscribersCommand extends Command
             }
 
             try {
-                $campaign->update(['status' => CampaignStatus::CollectingSubscribers]);
+                $campaignRepository->updateStatus($campaign->id, CampaignStatus::CollectingSubscribers);
 
                 $succeeded = false;
 
                 for ($attempt = 1; $attempt <= $maxTries; $attempt++) {
                     try {
-                        $this->collectSubscribers($campaign, $subscriberRepository);
+                        $this->collectSubscribers($campaign, $subscriberRepository, $campaignRepository);
                         $succeeded = true;
                         break;
                     } catch (\Throwable $e) {
@@ -50,7 +50,7 @@ class CollectCampaignSubscribersCommand extends Command
                 }
 
                 if (! $succeeded) {
-                    $campaign->update(['status' => CampaignStatus::Failed]);
+                    $campaignRepository->updateStatus($campaign->id, CampaignStatus::Failed);
                     $this->error("Campaign #{$campaign->id} failed after {$maxTries} attempts.");
                 }
             } finally {
@@ -64,6 +64,7 @@ class CollectCampaignSubscribersCommand extends Command
     private function collectSubscribers(
         Campaign $campaign,
         SubscriberRepositoryInterface $subscriberRepository,
+        CampaignRepositoryInterface $campaignRepository,
     ): void {
         $query = $subscriberRepository->segmentByQuery([
             'status' => SubscriberStatus::Active->value,
@@ -74,12 +75,11 @@ class CollectCampaignSubscribersCommand extends Command
 
         if ($remaining === 0) {
             if ($campaign->subscribers()->count() === 0) {
-                $campaign->update(['status' => CampaignStatus::Failed]);
-
+                $campaignRepository->updateStatus($campaign->id, CampaignStatus::Failed);
                 return;
             }
 
-            $campaign->update(['status' => CampaignStatus::SubscribersCollected]);
+            $campaignRepository->updateStatus($campaign->id, CampaignStatus::SubscribersCollected);
             $this->info("{$campaign->subscribers()->count()} subscribers collected");
 
             return;
@@ -99,7 +99,7 @@ class CollectCampaignSubscribersCommand extends Command
 
         $total = $campaign->subscribers()->count();
 
-        $campaign->update(['status' => CampaignStatus::SubscribersCollected]);
+        $campaignRepository->updateStatus($campaign->id, CampaignStatus::SubscribersCollected);
 
         $this->info("{$total} subscribers collected");
     }

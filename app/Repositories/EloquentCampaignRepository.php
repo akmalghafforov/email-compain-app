@@ -11,7 +11,7 @@ use App\Models\Campaign;
 use App\Enums\CampaignStatus;
 use App\Models\CampaignSubscriber;
 use App\Enums\CampaignSubscriberStatus;
-use App\Contracts\CampaignRepositoryInterface;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 
 class EloquentCampaignRepository implements CampaignRepositoryInterface

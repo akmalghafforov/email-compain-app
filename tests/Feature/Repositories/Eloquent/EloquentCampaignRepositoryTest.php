@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Campaign;
 use App\Models\Template;
 use App\Enums\CampaignStatus;
-use App\Contracts\CampaignRepositoryInterface;
 use App\Repositories\EloquentCampaignRepository;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 class EloquentCampaignRepositoryTest extends TestCase
 {

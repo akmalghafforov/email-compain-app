@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Models\Campaign;
 use App\Models\Subscriber;
 use App\Enums\SubscriberStatus;
-use App\Contracts\SubscriberRepositoryInterface;
+use App\Contracts\Repositories\SubscriberRepositoryInterface;
 
 class EloquentSubscriberRepository implements SubscriberRepositoryInterface
 {

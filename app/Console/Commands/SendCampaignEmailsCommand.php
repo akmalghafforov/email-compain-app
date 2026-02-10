@@ -8,8 +8,8 @@ use Illuminate\Console\Command;
 
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
-use App\Contracts\CampaignRepositoryInterface;
 use App\Jobs\SendCampaignEmailJob;
+use App\Contracts\Repositories\CampaignRepositoryInterface;
 
 class SendCampaignEmailsCommand extends Command
 {
