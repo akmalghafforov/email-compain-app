@@ -12,4 +12,5 @@ enum CampaignStatus: string
     case Sent = 'sent';
     case PartiallySent = 'partially_sent';
     case Failed = 'failed';
+    case Cancelled = 'cancelled';
 }

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
+use App\Enums\CampaignSubscriberStatus;
+
 class CampaignSubscriber extends Pivot
 {
     protected $table = 'campaign_subscriber';
@@ -14,6 +16,7 @@ class CampaignSubscriber extends Pivot
     protected function casts(): array
     {
         return [
+            'status' => CampaignSubscriberStatus::class,
             'sent_at' => 'datetime',
             'opened_at' => 'datetime',
             'clicked_at' => 'datetime',

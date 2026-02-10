@@ -9,6 +9,8 @@ use App\Models\Campaign;
 use App\Models\Subscriber;
 use App\Contracts\SubscriberRepositoryInterface;
 
+use App\Enums\SubscriberStatus;
+
 class EloquentSubscriberRepository implements SubscriberRepositoryInterface
 {
     /**
@@ -21,8 +23,8 @@ class EloquentSubscriberRepository implements SubscriberRepositoryInterface
         $campaign = Campaign::findOrFail($campaignId);
 
         return $campaign->subscribers()
-            ->wherePivot('status', 'active')
-            ->where('subscribers.status', 'active')
+            ->wherePivot('status', SubscriberStatus::Active->value)
+            ->where('subscribers.status', SubscriberStatus::Active->value)
             ->whereNull('subscribers.unsubscribed_at')
             ->get();
     }

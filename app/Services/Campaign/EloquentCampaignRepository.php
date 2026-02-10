@@ -12,6 +12,8 @@ use App\Enums\CampaignStatus;
 use App\Models\CampaignSubscriber;
 use App\Contracts\CampaignRepositoryInterface;
 
+use App\Enums\CampaignSubscriberStatus;
+
 class EloquentCampaignRepository implements CampaignRepositoryInterface
 {
     public function find(int $id): ?Campaign
@@ -57,7 +59,7 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
     {
         CampaignSubscriber::query()
             ->where('campaign_id', $campaignId)
-            ->where('status', 'pending')
+            ->where('status', CampaignSubscriberStatus::Pending->value)
             ->select('id', 'subscriber_id')
             ->chunkById($chunkSize, function ($pivotRecords) use ($callback) {
                 $callback($pivotRecords->pluck('subscriber_id')->all());
@@ -69,9 +71,9 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
         CampaignSubscriber::query()
             ->where('campaign_id', $campaignId)
             ->whereIn('subscriber_id', $subscriberIds)
-            ->where('status', 'pending')
+            ->where('status', CampaignSubscriberStatus::Pending->value)
             ->update([
-                'status' => 'failed',
+                'status' => CampaignSubscriberStatus::Failed->value,
                 'failed_reason' => $reason,
             ]);
     }

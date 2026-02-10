@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Enums\DeliveryLogEvent;
+
 class DeliveryLog extends Model
 {
     use HasFactory;
@@ -24,6 +26,7 @@ class DeliveryLog extends Model
     protected function casts(): array
     {
         return [
+            'event' => DeliveryLogEvent::class,
             'payload' => 'array',
             'occurred_at' => 'datetime',
         ];

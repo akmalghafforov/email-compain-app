@@ -12,6 +12,9 @@ use App\Models\DeliveryLog;
 use App\Contracts\Subscriber\Sendable;
 use App\Contracts\DeliveryTrackerInterface;
 
+use App\Enums\CampaignSubscriberStatus;
+use App\Enums\DeliveryLogEvent;
+
 class DeliveryTracker implements DeliveryTrackerInterface
 {
     public function recordSent(Campaign $campaign, Sendable $subscriber, SendResult $result): void
@@ -19,7 +22,7 @@ class DeliveryTracker implements DeliveryTrackerInterface
         $subscriberId = $this->resolveSubscriberId($subscriber);
 
         $campaign->subscribers()->updateExistingPivot($subscriberId, [
-            'status' => 'sent',
+            'status' => CampaignSubscriberStatus::Sent->value,
             'sent_at' => now(),
         ]);
 
@@ -27,7 +30,7 @@ class DeliveryTracker implements DeliveryTrackerInterface
             'campaign_id' => $campaign->id,
             'subscriber_id' => $subscriberId,
             'channel' => $campaign->sender_channel,
-            'event' => 'sent',
+            'event' => DeliveryLogEvent::Sent->value,
             'payload' => ['message_id' => $result->messageId],
             'occurred_at' => now(),
         ]);
@@ -38,7 +41,7 @@ class DeliveryTracker implements DeliveryTrackerInterface
         $subscriberId = $this->resolveSubscriberId($subscriber);
 
         $campaign->subscribers()->updateExistingPivot($subscriberId, [
-            'status' => 'failed',
+            'status' => CampaignSubscriberStatus::Failed->value,
             'failed_reason' => $reason,
         ]);
 
@@ -46,7 +49,7 @@ class DeliveryTracker implements DeliveryTrackerInterface
             'campaign_id' => $campaign->id,
             'subscriber_id' => $subscriberId,
             'channel' => $campaign->sender_channel,
-            'event' => 'failed',
+            'event' => DeliveryLogEvent::Failed->value,
             'payload' => ['error' => $reason],
             'occurred_at' => now(),
         ]);
@@ -71,13 +74,19 @@ class DeliveryTracker implements DeliveryTrackerInterface
     {
         $totalRecipients = Campaign::findOrFail($campaignId)->subscribers()->count();
 
+        $sent = DeliveryLogEvent::Sent->value;
+        $opened = DeliveryLogEvent::Opened->value;
+        $clicked = DeliveryLogEvent::Clicked->value;
+        $bounced = DeliveryLogEvent::Bounced->value;
+        $failed = DeliveryLogEvent::Failed->value;
+
         $counts = DeliveryLog::where('campaign_id', $campaignId)
             ->selectRaw("
-                count(*) filter (where event = 'sent') as sent,
-                count(*) filter (where event = 'opened') as opened,
-                count(*) filter (where event = 'clicked') as clicked,
-                count(*) filter (where event = 'bounced') as bounced,
-                count(*) filter (where event = 'failed') as failed
+                count(*) filter (where event = '{$sent}') as sent,
+                count(*) filter (where event = '{$opened}') as opened,
+                count(*) filter (where event = '{$clicked}') as clicked,
+                count(*) filter (where event = '{$bounced}') as bounced,
+                count(*) filter (where event = '{$failed}') as failed
             ")
             ->first();
 

@@ -10,7 +10,7 @@ class TemplateRenderer
 
     public function render(Template $template, array $variables): string
     {
-        $engine = $this->registry->resolve($template->engine);
+        $engine = $this->registry->resolve($template->engine->value);
 
         return $engine->render($template->body_content, $variables);
     }

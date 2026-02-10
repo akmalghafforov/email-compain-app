@@ -14,6 +14,8 @@ use App\Models\Template;
 use App\Models\Subscriber;
 use App\Models\DeliveryLog;
 use App\Enums\CampaignStatus;
+use App\Enums\CampaignSubscriberStatus;
+use App\Enums\DeliveryLogEvent;
 use App\Services\Delivery\DeliveryTracker;
 
 class DeliveryTrackerTest extends TestCase
@@ -41,7 +43,7 @@ class DeliveryTrackerTest extends TestCase
 
         $subscriber = Subscriber::factory()->create();
 
-        $campaign->subscribers()->attach($subscriber->id, ['status' => 'pending']);
+        $campaign->subscribers()->attach($subscriber->id, ['status' => CampaignSubscriberStatus::Pending]);
 
         return [$campaign, $subscriber];
     }
@@ -54,7 +56,7 @@ class DeliveryTrackerTest extends TestCase
         $this->tracker->recordSent($campaign, $subscriber, $result);
 
         $pivot = $campaign->subscribers()->where('subscriber_id', $subscriber->id)->first()->pivot;
-        $this->assertEquals('sent', $pivot->status);
+        $this->assertEquals(CampaignSubscriberStatus::Sent, $pivot->status);
         $this->assertNotNull($pivot->sent_at);
     }
 
@@ -70,7 +72,7 @@ class DeliveryTrackerTest extends TestCase
             ->first();
 
         $this->assertNotNull($log);
-        $this->assertEquals('sent', $log->event);
+        $this->assertEquals(DeliveryLogEvent::Sent, $log->event);
         $this->assertEquals('smtp', $log->channel);
         $this->assertEquals(['message_id' => 'msg-002'], $log->payload);
     }
@@ -82,7 +84,7 @@ class DeliveryTrackerTest extends TestCase
         $this->tracker->recordFailed($campaign, $subscriber, 'SMTP connection refused');
 
         $pivot = $campaign->subscribers()->where('subscriber_id', $subscriber->id)->first()->pivot;
-        $this->assertEquals('failed', $pivot->status);
+        $this->assertEquals(CampaignSubscriberStatus::Failed, $pivot->status);
         $this->assertEquals('SMTP connection refused', $pivot->failed_reason);
     }
 
@@ -97,7 +99,7 @@ class DeliveryTrackerTest extends TestCase
             ->first();
 
         $this->assertNotNull($log);
-        $this->assertEquals('failed', $log->event);
+        $this->assertEquals(DeliveryLogEvent::Failed, $log->event);
         $this->assertEquals('smtp', $log->channel);
         $this->assertEquals(['error' => 'Connection timeout'], $log->payload);
     }

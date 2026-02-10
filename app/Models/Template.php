@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Enums\TemplateEngine;
+
 class Template extends Model
 {
     use HasFactory;
@@ -21,6 +23,7 @@ class Template extends Model
     protected function casts(): array
     {
         return [
+            'engine' => TemplateEngine::class,
             'metadata' => 'array',
         ];
     }

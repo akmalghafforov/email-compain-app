@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Cache;
 
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
+use App\Enums\SubscriberStatus;
+use App\Enums\CampaignSubscriberStatus;
 use App\Contracts\CampaignRepositoryInterface;
 use App\Contracts\SubscriberRepositoryInterface;
 
@@ -64,7 +66,7 @@ class CollectCampaignSubscribersCommand extends Command
         SubscriberRepositoryInterface $subscriberRepository,
     ): void {
         $query = $subscriberRepository->segmentByQuery([
-            'status' => 'active',
+            'status' => SubscriberStatus::Active->value,
             'unsubscribed_at' => null,
         ])->whereDoesntHave('campaigns', fn ($q) => $q->where('campaigns.id', $campaign->id));
 
@@ -87,7 +89,7 @@ class CollectCampaignSubscribersCommand extends Command
 
         $query->chunkById(1000, function ($subscribers) use ($campaign, &$collected) {
             $pivotData = $subscribers->mapWithKeys(fn ($subscriber) => [
-                $subscriber->id => ['status' => 'pending'],
+                $subscriber->id => ['status' => CampaignSubscriberStatus::Pending->value],
             ])->all();
 
             $campaign->subscribers()->syncWithoutDetaching($pivotData);

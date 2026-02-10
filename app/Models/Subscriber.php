@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+use App\Enums\SubscriberStatus;
 use App\Contracts\Subscriber\Sendable;
 
 class Subscriber extends Model implements Sendable
@@ -25,6 +26,7 @@ class Subscriber extends Model implements Sendable
     protected function casts(): array
     {
         return [
+            'status' => SubscriberStatus::class,
             'metadata' => 'array',
             'subscribed_at' => 'datetime',
             'unsubscribed_at' => 'datetime',
