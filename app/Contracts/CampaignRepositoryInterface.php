@@ -56,4 +56,11 @@ interface CampaignRepositoryInterface
      * @param  Closure(list<int>): void  $callback
      */
     public function chunkPendingSubscribers(Campaign $campaign, int $chunkSize, Closure $callback): void;
+
+    /**
+     * Mark pending subscribers as failed for a campaign.
+     *
+     * @param  array<int>  $subscriberIds
+     */
+    public function markPendingSubscribersAsFailed(Campaign $campaign, array $subscriberIds, string $reason): void;
 }

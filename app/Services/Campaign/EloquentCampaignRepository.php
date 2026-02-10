@@ -63,4 +63,17 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
                 $callback($pivotRecords->pluck('subscriber_id')->all());
             });
     }
+
+    public function markPendingSubscribersAsFailed(Campaign $campaign, array $subscriberIds, string $reason): void
+    {
+        CampaignSubscriber::query()
+            ->where('campaign_id', $campaign->id)
+            ->whereIn('subscriber_id', $subscriberIds)
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'failed',
+                'failed_reason' => $reason,
+            ]);
+    }
 }
+
