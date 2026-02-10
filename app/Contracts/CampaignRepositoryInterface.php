@@ -2,8 +2,10 @@
 
 namespace App\Contracts;
 
-use App\Models\Campaign;
+use Closure;
 use Illuminate\Support\Collection;
+
+use App\Models\Campaign;
 
 interface CampaignRepositoryInterface
 {
@@ -44,4 +46,14 @@ interface CampaignRepositoryInterface
      * Mark a campaign as started.
      */
     public function markAsStarted(int $id): Campaign;
+
+    /**
+     * Chunk pending subscribers for a campaign.
+     *
+     * Iterates over campaign_subscriber pivot records with status 'pending'
+     * in chunks, passing each chunk's subscriber IDs to the callback.
+     *
+     * @param  Closure(list<int>): void  $callback
+     */
+    public function chunkPendingSubscribers(Campaign $campaign, int $chunkSize, Closure $callback): void;
 }

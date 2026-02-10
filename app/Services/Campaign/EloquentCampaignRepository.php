@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Campaign;
 
+use Closure;
 use Illuminate\Support\Collection;
 
 use App\Models\Campaign;
-use App\Contracts\CampaignRepositoryInterface;
 use App\Enums\CampaignStatus;
+use App\Models\CampaignSubscriber;
+use App\Contracts\CampaignRepositoryInterface;
 
 class EloquentCampaignRepository implements CampaignRepositoryInterface
 {
@@ -49,5 +51,16 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
         $campaign->update(['status' => CampaignStatus::Started]);
 
         return $campaign;
+    }
+
+    public function chunkPendingSubscribers(Campaign $campaign, int $chunkSize, Closure $callback): void
+    {
+        CampaignSubscriber::query()
+            ->where('campaign_id', $campaign->id)
+            ->where('status', 'pending')
+            ->select('id', 'subscriber_id')
+            ->chunkById($chunkSize, function ($pivotRecords) use ($callback) {
+                $callback($pivotRecords->pluck('subscriber_id')->all());
+            });
     }
 }
