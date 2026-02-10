@@ -19,7 +19,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('subscribers', function (Blueprint $table) {
-            $table->string('type', 30)->after('name');
+            $table->string('type', 30)->nullable()->after('name');
         });
     }
 };
