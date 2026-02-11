@@ -64,12 +64,23 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
                 <span v-else class="text-gray-400">—</span>
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm">
+
                 <NuxtLink
+                  v-if="campaign.status === 'sent'"
+                  :to="`/campaigns/${campaign.id}`"
+                  class="font-medium text-indigo-600 hover:text-indigo-800"
+                >
+                  View
+                </NuxtLink>
+
+                <NuxtLink
+                  v-else
                   :to="`/campaigns/${campaign.id}/edit`"
                   class="font-medium text-indigo-600 hover:text-indigo-800"
                 >
                   Edit
                 </NuxtLink>
+
               </td>
             </tr>
           </tbody>
