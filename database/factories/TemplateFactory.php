@@ -21,7 +21,7 @@ class TemplateFactory extends Factory
     {
         return [
             'name' => fake()->words(3, true),
-            'engine' => fake()->randomElement(['blade', 'markdown', 'twig', 'mjml']),
+            'engine' => 'twig',
             'subject_template' => fake()->sentence(),
             'body_content' => '<h1>Hello {{ name }}</h1><p>' . fake()->paragraph() . '</p>',
             'metadata' => null,
@@ -32,6 +32,7 @@ class TemplateFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'engine' => 'blade',
+            'body_content' => '<h1>Hello {{ $name }}</h1><p>' . fake()->paragraph() . '</p>',
         ]);
     }
 
@@ -39,7 +40,7 @@ class TemplateFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'engine' => 'markdown',
-            'body_content' => "# Hello {{ name }}\n\n" . fake()->paragraph(),
+            'body_content' => "# Hello {{name}}\n\n" . fake()->paragraph(),
         ]);
     }
 

@@ -10,4 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('campaigns:collect-subscribers')->everyMinute();
 Schedule::command('campaigns:send-emails')->everyMinute();
-Schedule::command('campaigns:finalize-status')->everyFiveMinutes();
+Schedule::command('campaigns:finalize-status')->everyMinute();
