@@ -15,8 +15,8 @@ const [{ data: campaignResponse, status, error }, { data: statsResponse }] = awa
 const campaign = computed(() => campaignResponse.value?.data ?? null)
 const stats = computed(() => statsResponse.value?.data ?? null)
 
-if (campaign.value && campaign.value.status !== 'sent') {
-  await navigateTo(`/campaigns/${id}/edit`, { replace: true })
+if (campaign.value && campaign.value.status !== 'sent' && campaign.value.status !== 'failed') {
+  await navigateTo(`/campaigns/${id}/edit`)
 }
 
 function formatDate(value: string | null): string {
