@@ -22,52 +22,28 @@ class TestDataSeeder extends Seeder
     {
         $definitions = [
             [
-                'name' => 'Welcome Email',
-                'engine' => 'twig',
-                'subject_template' => 'Welcome to {{ company }}, {{ name }}!',
-                'body_content' => '<h1>Welcome, {{ name }}!</h1><p>We\'re thrilled to have you join {{ company }}. Your account is all set up and ready to go.</p><p>Here are a few things you can do to get started:</p><ul><li>Complete your profile</li><li>Browse our latest offerings</li><li>Connect with our community</li></ul><p>If you have any questions, reply to this email — we\'re here to help.</p><p>Cheers,<br>The {{ company }} Team</p>',
-            ],
-            [
-                'name' => 'Weekly Newsletter',
-                'engine' => 'twig',
-                'subject_template' => '{{ company }} Weekly: {{ headline }}',
-                'body_content' => '<h1>{{ headline }}</h1><p>Hi {{ name }},</p><p>Here\'s what happened this week at {{ company }}:</p><h2>Top Stories</h2><p>{{ story_1 }}</p><p>{{ story_2 }}</p><h2>Upcoming Events</h2><p>{{ events }}</p><p>See you next week!</p>',
-            ],
-            [
                 'name' => 'Flash Sale Announcement',
                 'engine' => 'blade',
-                'subject_template' => 'Flash Sale: Up to {{ $discount }}% Off Everything!',
-                'body_content' => '<h1>Flash Sale is LIVE!</h1><p>Hi {{ $name }},</p><p>For the next <strong>{{ $hours }} hours only</strong>, enjoy up to <strong>{{ $discount }}% off</strong> across our entire store.</p><p>Use code <strong>{{ $code }}</strong> at checkout.</p><p>Don\'t wait — deals this good won\'t last!</p><a href="{{ $link }}">Shop Now</a>',
+                'subject_template' => 'Flash Sale: Up to 50% Off Everything!',
+                'body_content' => '<h1>Flash Sale is LIVE!</h1><p>Hi {{ $name }},</p><p>For the next 24 hours only, enjoy up to 50% off across our entire store.</p><p>This offer is exclusive to <strong>{{ $email }}</strong>.</p><p>Don\'t wait — deals this good won\'t last!</p><a href="#">Shop Now</a>',
             ],
             [
                 'name' => 'Product Launch',
                 'engine' => 'blade',
-                'subject_template' => 'Introducing {{ $product_name }} — Now Available',
-                'body_content' => '<h1>Say Hello to {{ $product_name }}</h1><p>Hi {{ $name }},</p><p>We\'ve been working on something exciting, and today we\'re proud to introduce <strong>{{ $product_name }}</strong>.</p><p>{{ $product_description }}</p><p>Early adopters get <strong>{{ $early_discount }}% off</strong> for the first week.</p><a href="{{ $link }}">Learn More</a>',
+                'subject_template' => 'Our New Product — Now Available',
+                'body_content' => '<h1>Something New Just Landed</h1><p>Hi {{ $name }},</p><p>We\'ve been working on something exciting, and today we\'re proud to share it with you.</p><p>As a subscriber at <strong>{{ $email }}</strong>, you get early access.</p><a href="#">Learn More</a>',
             ],
             [
                 'name' => 'Account Verification',
                 'engine' => 'markdown',
                 'subject_template' => 'Verify your email address',
-                'body_content' => "# Email Verification\n\nHi {{name}},\n\nPlease verify your email address by clicking the link below:\n\n[Verify My Email]({{verification_url}})\n\nThis link will expire in **{{expiry_hours}} hours**.\n\nIf you didn't create an account, you can safely ignore this email.",
+                'body_content' => "# Email Verification\n\nHi {{name}},\n\nPlease verify that **{{email}}** is your email address by clicking the link below:\n\n[Verify My Email](#)\n\nThis link will expire in 24 hours.\n\nIf you didn't create an account, you can safely ignore this email.",
             ],
             [
                 'name' => 'Monthly Digest',
                 'engine' => 'markdown',
-                'subject_template' => 'Your {{month}} Monthly Digest',
-                'body_content' => "# Your {{month}} Recap\n\nHi {{name}},\n\nHere's a summary of your activity this month:\n\n- **Orders placed:** {{order_count}}\n- **Total spent:** \${{total_spent}}\n- **Loyalty points earned:** {{points}}\n\n## Recommended for You\n\n{{recommendations}}\n\nThanks for being a valued customer!",
-            ],
-            [
-                'name' => 'Holiday Promotion',
-                'engine' => 'twig',
-                'subject_template' => '{{ holiday }} Special: Exclusive Deals Inside',
-                'body_content' => '<h1>{{ holiday }} Sale Event</h1><p>Hi {{ name }},</p><p>Celebrate {{ holiday }} with our biggest discounts of the year!</p><p>Save up to <strong>{{ discount }}%</strong> on select items through {{ end_date }}.</p><ul><li>{{ deal_1 }}</li><li>{{ deal_2 }}</li><li>{{ deal_3 }}</li></ul><a href="{{ link }}">Browse Deals</a><p>Happy {{ holiday }}!</p>',
-            ],
-            [
-                'name' => 'Abandoned Cart Reminder',
-                'engine' => 'twig',
-                'subject_template' => '{{ name }}, you left something behind!',
-                'body_content' => '<h1>Still Thinking It Over?</h1><p>Hi {{ name }},</p><p>You left <strong>{{ item_count }} item(s)</strong> in your cart totaling <strong>${{ cart_total }}</strong>.</p><p>Your cart is saved, but inventory is limited. Complete your purchase before these items sell out.</p><a href="{{ cart_link }}">Return to Cart</a><p>Need help? Just reply to this email.</p>',
+                'subject_template' => 'Your Monthly Digest',
+                'body_content' => "# Your Monthly Recap\n\nHi {{name}},\n\nHere's a summary of your activity this month. This digest is sent to **{{email}}**.\n\nCheck your dashboard for full details on your recent orders, loyalty points, and personalized recommendations.\n\nThanks for being a valued customer!",
             ],
         ];
 
