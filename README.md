@@ -1,59 +1,176 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Email Campaign Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-stack application for creating, managing, and sending email campaigns to subscribers. Built with Laravel 12, Nuxt 3, and Docker.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Backend:** Laravel 12 (PHP 8.4), PostgreSQL 16, Redis 7
+**Frontend:** Nuxt 3 (Vue 3), Tailwind CSS 4
+**Infrastructure:** Docker & Docker Compose
+**Testing:** PHPUnit 11 (SQLite in-memory)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Campaign Management** — Create, edit, schedule, and dispatch email campaigns
+- **Template Engines** — Blade, Twig, Markdown, and MJML support with variable interpolation
+- **Subscriber Management** — Manage subscribers with status tracking and metadata
+- **Multi-Channel Delivery** — SMTP, SendGrid, and Mailgun email senders
+- **Queue-Based Processing** — Reliable email delivery via Redis job queues with automatic retry (3 attempts)
+- **Delivery Tracking** — Track opens (pixel-based), clicks, and delivery failures
+- **Campaign Statistics** — Real-time sent count, open rate, and click metrics
 
-## Learning Laravel
+## Project Structure
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```
+├── app/
+│   ├── Http/Controllers/Api/    # Campaign, Template, Subscriber controllers
+│   ├── Models/                  # Eloquent models
+│   ├── Services/
+│   │   ├── Delivery/            # DeliveryTracker (logs and stats)
+│   │   ├── EmailSenders/        # SMTP, SendGrid, Mailgun senders
+│   │   └── Template/            # Template rendering engines
+│   ├── Jobs/                    # SendCampaignEmailJob
+│   ├── Repositories/            # Eloquent repository implementations
+│   ├── Contracts/               # Repository and sender interfaces
+│   ├── DTOs/                    # Data Transfer Objects
+│   └── Enums/                   # Status and type enumerations
+├── frontend/
+│   ├── pages/                   # Dashboard, campaigns, subscribers
+│   ├── components/              # Reusable Vue components
+│   ├── composables/             # API and pagination composables
+│   └── server/                  # API proxy middleware
+├── database/
+│   ├── migrations/              # Schema migrations
+│   ├── factories/               # Model factories
+│   └── seeders/                 # Database seeders
+├── tests/
+│   ├── Feature/                 # API integration tests
+│   └── Unit/                    # Service and provider tests
+├── docker/                      # Docker configuration
+├── docker-compose.yml           # Multi-container orchestration
+├── Dockerfile                   # PHP-FPM image
+└── Makefile                     # Development commands
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Getting Started
 
-## Laravel Sponsors
+### Prerequisites
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Docker & Docker Compose
 
-### Premium Partners
+### Setup
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+# Copy environment file
+cp .env.example .env
 
-## Contributing
+# Build and start all services
+make build
+make up
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Run database migrations
+make migrate
 
-## Code of Conduct
+# (Optional) Seed the database
+make seed
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Accessing the Application
 
-## Security Vulnerabilities
+| Service      | URL                        |
+|--------------|----------------------------|
+| Frontend     | http://localhost:3000       |
+| Backend API  | http://localhost:8000/api   |
+| PostgreSQL   | localhost:5432              |
+| Redis        | localhost:6379              |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## API Endpoints
 
-## License
+### Campaigns
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Method | Endpoint                        | Description                |
+|--------|---------------------------------|----------------------------|
+| GET    | `/api/campaigns`                | List campaigns (paginated) |
+| POST   | `/api/campaigns`                | Create a campaign          |
+| GET    | `/api/campaigns/{id}`           | Get campaign details       |
+| PUT    | `/api/campaigns/{id}`           | Update a campaign          |
+| POST   | `/api/campaigns/{id}/dispatch`  | Dispatch a campaign        |
+| GET    | `/api/campaigns/{id}/stats`     | Get campaign statistics    |
+
+### Templates
+
+| Method | Endpoint          | Description                |
+|--------|-------------------|----------------------------|
+| GET    | `/api/templates`  | List templates (paginated) |
+| POST   | `/api/templates`  | Create a template          |
+
+### Subscribers
+
+| Method | Endpoint            | Description                  |
+|--------|---------------------|------------------------------|
+| GET    | `/api/subscribers`  | List subscribers (paginated) |
+
+### Tracking
+
+| Method | Endpoint                  | Description        |
+|--------|---------------------------|--------------------|
+| GET    | `/t/{trackingId}/open`    | Track email opens  |
+| GET    | `/t/{trackingId}/click`   | Track link clicks  |
+
+## Make Commands
+
+```bash
+make up              # Start containers
+make down            # Stop containers
+make restart         # Restart all services
+make build           # Build/rebuild images
+make migrate         # Run database migrations
+make fresh           # Reset database and seed
+make seed            # Run seeders
+make test            # Run all tests
+make test-unit       # Run unit tests only
+make test-feature    # Run feature tests only
+make shell           # Access app container bash
+make db-shell        # Access PostgreSQL shell
+make redis-shell     # Access Redis CLI
+make logs            # View all logs
+make queue-logs      # View queue worker logs
+make scheduler-logs  # View scheduler logs
+```
+
+## Environment Configuration
+
+Key variables in `.env`:
+
+| Variable            | Default   | Description                                  |
+|---------------------|-----------|----------------------------------------------|
+| `APP_ENV`           | `local`   | Application environment                      |
+| `APP_DEBUG`         | `true`    | Debug mode                                   |
+| `DB_CONNECTION`     | `pgsql`   | Database driver                              |
+| `QUEUE_CONNECTION`  | `redis`   | Job queue driver                             |
+| `CACHE_STORE`       | `redis`   | Cache driver                                 |
+| `MAIL_MAILER`       | `log`     | Email driver (log, smtp, sendgrid, mailgun)  |
+
+## Testing
+
+Tests use SQLite in-memory database for fast execution.
+
+```bash
+make test            # Run all tests
+make test-unit       # Unit tests only
+make test-feature    # Feature/integration tests only
+```
+
+**Unit tests** cover template engines, delivery tracker, email senders, and service providers.
+**Feature tests** cover API endpoints for campaigns, templates, and subscribers.
+
+## Docker Services
+
+| Service     | Description                    |
+|-------------|--------------------------------|
+| `app`       | Laravel (PHP-FPM) on port 8000 |
+| `frontend`  | Nuxt dev server on port 3000   |
+| `postgres`  | PostgreSQL 16 database         |
+| `redis`     | Redis 7 (cache + queue)        |
+| `queue`     | Background job worker          |
+| `scheduler` | Laravel task scheduler         |
