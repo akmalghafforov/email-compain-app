@@ -31,8 +31,6 @@ interface DeliveryTrackerInterface
      */
     public function recordClick(string $trackingId, string $url): void;
 
-
-
     /**
      * Get aggregated statistics for a campaign.
      *

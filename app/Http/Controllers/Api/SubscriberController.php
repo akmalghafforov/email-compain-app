@@ -22,5 +22,4 @@ class SubscriberController extends Controller
 
         return ApiResponse::paginated($subscribers);
     }
-
 }

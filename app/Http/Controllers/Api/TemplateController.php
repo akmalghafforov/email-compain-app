@@ -39,5 +39,4 @@ class TemplateController extends Controller
 
         return ApiResponse::created($template, 'Template created successfully.');
     }
-
 }

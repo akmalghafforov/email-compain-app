@@ -64,7 +64,6 @@ interface CampaignRepositoryInterface
      */
     public function updateStatus(int $campaignId, CampaignStatus $status): void;
 
-
     /**
      * Mark pending subscribers as failed for a campaign.
      *

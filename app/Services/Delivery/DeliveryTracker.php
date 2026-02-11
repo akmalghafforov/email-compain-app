@@ -12,8 +12,8 @@ use App\Models\DeliveryLog;
 use App\Contracts\Subscriber\Sendable;
 use App\Contracts\DeliveryTrackerInterface;
 
-use App\Enums\CampaignSubscriberStatus;
 use App\Enums\DeliveryLogEvent;
+use App\Enums\CampaignSubscriberStatus;
 
 class DeliveryTracker implements DeliveryTrackerInterface
 {
