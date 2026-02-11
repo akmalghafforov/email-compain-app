@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
+import { useListPage } from '~/composables/useListPage'
 
 const { currentPage, items: campaigns, meta, status, error } = useListPage<Campaign>('/api/campaigns')
 </script>

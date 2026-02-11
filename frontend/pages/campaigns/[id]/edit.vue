@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
+import type { Template } from '~/types/template'
 import { getErrorMessage } from '~/utils/error'
-
-interface Template {
-  id: number
-  name: string
-}
 
 const SENDER_CHANNELS = [
   { value: 'smtp', label: 'SMTP' },
@@ -13,6 +9,14 @@ const SENDER_CHANNELS = [
   { value: 'mailgun', label: 'Mailgun' },
 ] as const
 
+const TEMPLATE_ENGINES = [
+  { value: 'blade', label: 'Blade' },
+  { value: 'twig', label: 'Twig' },
+  { value: 'markdown', label: 'Markdown' },
+  { value: 'mjml', label: 'MJML' },
+] as const
+
+const CUSTOM_TEMPLATE = 'custom'
 const DEFAULT_SCHEDULED_TIME = '09:00'
 
 const config = useRuntimeConfig()
@@ -33,11 +37,19 @@ const campaign = computed(() => response.value?.data ?? null)
 const form = reactive({
   name: '',
   subject: '',
-  template_id: null as number | null,
+  template_id: null as number | null | typeof CUSTOM_TEMPLATE,
   sender_channel: '',
   scheduled_date: '',
   scheduled_time: DEFAULT_SCHEDULED_TIME,
+  custom_template: {
+    name: '',
+    engine: 'blade' as string,
+    subject_template: '',
+    body_content: '',
+  },
 })
+
+const isCustomTemplate = computed(() => form.template_id === CUSTOM_TEMPLATE)
 
 watch(
   () => response.value,
@@ -65,12 +77,27 @@ async function submit() {
   saveError.value = null
 
   try {
+    let templateId: number | null = isCustomTemplate.value ? null : (form.template_id as number | null)
+
+    if (isCustomTemplate.value) {
+      const created = await $fetch<{ data: Template }>(`${config.public.apiBase}/api/templates`, {
+        method: 'POST',
+        body: {
+          name: form.custom_template.name,
+          engine: form.custom_template.engine,
+          subject_template: form.custom_template.subject_template,
+          body_content: form.custom_template.body_content,
+        },
+      })
+      templateId = created.data.id
+    }
+
     await $fetch(`${config.public.apiBase}/api/campaigns/${id}`, {
       method: 'PUT',
       body: {
         name: form.name,
         subject: form.subject,
-        template_id: form.template_id,
+        template_id: templateId,
         sender_channel: form.sender_channel,
         scheduled_at: form.scheduled_date
           ? `${form.scheduled_date}T${form.scheduled_time}:00`
@@ -161,8 +188,62 @@ const canStart = computed(() => campaign.value?.status === 'draft')
             <option v-for="template in templates" :key="template.id" :value="template.id">
               {{ template.name }}
             </option>
+            <option :value="CUSTOM_TEMPLATE">+ Custom template…</option>
           </select>
         </div>
+
+        <template v-if="isCustomTemplate">
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4 space-y-4">
+            <p class="text-xs font-medium text-indigo-700 uppercase tracking-wider">New custom template</p>
+
+            <div>
+              <label for="custom_name" class="block text-sm font-medium text-gray-700">Template Name</label>
+              <input
+                id="custom_name"
+                v-model="form.custom_template.name"
+                type="text"
+                required
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="custom_engine" class="block text-sm font-medium text-gray-700">Engine</label>
+              <select
+                id="custom_engine"
+                v-model="form.custom_template.engine"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option v-for="engine in TEMPLATE_ENGINES" :key="engine.value" :value="engine.value">
+                  {{ engine.label }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label for="custom_subject_template" class="block text-sm font-medium text-gray-700">Subject Template</label>
+              <input
+                id="custom_subject_template"
+                v-model="form.custom_template.subject_template"
+                type="text"
+                required
+                placeholder="e.g. Hello {{ name }}!"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="custom_body_content" class="block text-sm font-medium text-gray-700">Body Content</label>
+              <textarea
+                id="custom_body_content"
+                v-model="form.custom_template.body_content"
+                rows="8"
+                required
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+              />
+            </div>
+          </div>
+        </template>
 
         <div>
           <label for="sender_channel" class="block text-sm font-medium text-gray-700">Sender Channel</label>
