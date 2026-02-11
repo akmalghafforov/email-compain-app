@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('subject');
             $table->foreignId('template_id')->constrained('templates');
             $table->string('sender_channel', 50);
-            $table->string('status', 20)->default('draft');
+            $table->string('status', 50)->default('draft');
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
