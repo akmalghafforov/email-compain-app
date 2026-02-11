@@ -3,106 +3,55 @@ import type { Campaign } from '~/types/campaign'
 import type { Template } from '~/types/template'
 import { getErrorMessage } from '~/utils/error'
 
-const SENDER_CHANNELS = [
-  { value: 'smtp', label: 'SMTP' },
-  { value: 'sendgrid', label: 'SendGrid' },
-  { value: 'mailgun', label: 'Mailgun' },
-] as const
-
-const TEMPLATE_ENGINES = [
-  { value: 'blade', label: 'Blade' },
-  { value: 'twig', label: 'Twig' },
-  { value: 'markdown', label: 'Markdown' },
-  { value: 'mjml', label: 'MJML' },
-] as const
-
-const CUSTOM_TEMPLATE = 'custom'
-const DEFAULT_SCHEDULED_TIME = '09:00'
-
-const config = useRuntimeConfig()
+const { url, post, put } = useApi()
 const route = useRoute()
 const router = useRouter()
 
 const id = route.params.id as string
 
 const [{ data: response, status, error }, { data: templatesResponse }] = await Promise.all([
-  useFetch<{ data: Campaign }>(`${config.public.apiBase}/api/campaigns/${id}`),
-  useFetch<{ data: Template[] }>(`${config.public.apiBase}/api/templates`),
+  useFetch<{ data: Campaign }>(url(`/api/campaigns/${id}`)),
+  useFetch<{ data: Template[] }>(url('/api/templates')),
 ])
 
 const templates = computed(() => templatesResponse.value?.data ?? [])
-
 const campaign = computed(() => response.value?.data ?? null)
-
-const form = reactive({
-  name: '',
-  subject: '',
-  template_id: null as number | null | typeof CUSTOM_TEMPLATE,
-  sender_channel: '',
-  scheduled_date: '',
-  scheduled_time: DEFAULT_SCHEDULED_TIME,
-  custom_template: {
-    name: '',
-    engine: 'blade' as string,
-    subject_template: '',
-    body_content: '',
-  },
-})
-
-const isCustomTemplate = computed(() => form.template_id === CUSTOM_TEMPLATE)
-
-watch(
-  () => response.value,
-  (val) => {
-    if (val?.data) {
-      form.name = val.data.name
-      form.subject = val.data.subject
-      form.template_id = val.data.template_id ?? null
-      form.sender_channel = val.data.sender_channel
-      if (val.data.scheduled_at) {
-        const d = new Date(val.data.scheduled_at)
-        form.scheduled_date = d.toISOString().slice(0, 10)
-        form.scheduled_time = d.toTimeString().slice(0, 5)
-      }
-    }
-  },
-  { immediate: true }
-)
 
 const saving = ref(false)
 const saveError = ref<string | null>(null)
 
-async function submit() {
+type FormPayload = {
+  name: string
+  subject: string
+  template_id: number | null
+  sender_channel: string
+  scheduled_at: string | null
+  custom_template?: {
+    name: string
+    engine: string
+    subject_template: string
+    body_content: string
+  }
+}
+
+async function handleSubmit(payload: FormPayload) {
   saving.value = true
   saveError.value = null
 
   try {
-    let templateId: number | null = isCustomTemplate.value ? null : (form.template_id as number | null)
+    let templateId = payload.template_id
 
-    if (isCustomTemplate.value) {
-      const created = await $fetch<{ data: Template }>(`${config.public.apiBase}/api/templates`, {
-        method: 'POST',
-        body: {
-          name: form.custom_template.name,
-          engine: form.custom_template.engine,
-          subject_template: form.custom_template.subject_template,
-          body_content: form.custom_template.body_content,
-        },
-      })
+    if (payload.custom_template) {
+      const created = await post<{ data: Template }>('/api/templates', payload.custom_template as unknown as Record<string, unknown>)
       templateId = created.data.id
     }
 
-    await $fetch(`${config.public.apiBase}/api/campaigns/${id}`, {
-      method: 'PUT',
-      body: {
-        name: form.name,
-        subject: form.subject,
-        template_id: templateId,
-        sender_channel: form.sender_channel,
-        scheduled_at: form.scheduled_date
-          ? `${form.scheduled_date}T${form.scheduled_time}:00`
-          : null,
-      },
+    await put(`/api/campaigns/${id}`, {
+      name: payload.name,
+      subject: payload.subject,
+      template_id: templateId,
+      sender_channel: payload.sender_channel,
+      scheduled_at: payload.scheduled_at,
     })
     router.push('/campaigns')
   } catch (err: unknown) {
@@ -120,9 +69,7 @@ async function dispatch() {
   dispatchError.value = null
 
   try {
-    await $fetch(`${config.public.apiBase}/api/campaigns/${id}/dispatch`, {
-      method: 'POST',
-    })
+    await post(`/api/campaigns/${id}/dispatch`)
     router.push('/campaigns')
   } catch (err: unknown) {
     dispatchError.value = getErrorMessage(err, 'Failed to start campaign.')
@@ -137,12 +84,12 @@ const canStart = computed(() => campaign.value?.status === 'draft')
 <template>
   <div>
     <div class="mb-6 flex items-center gap-3">
-      <NuxtLink to="/campaigns" class="text-sm text-gray-500 hover:text-gray-700">← Campaigns</NuxtLink>
+      <NuxtLink to="/campaigns" class="text-sm text-gray-500 hover:text-gray-700">&larr; Campaigns</NuxtLink>
       <h1 class="text-3xl font-bold text-gray-900">Edit Campaign</h1>
     </div>
 
-    <div v-if="status === 'pending'" class="text-center text-gray-500">
-      Loading campaign...
+    <div v-if="status === 'pending'">
+      <FormSkeleton />
     </div>
 
     <div v-else-if="error" class="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
@@ -150,160 +97,15 @@ const canStart = computed(() => campaign.value?.status === 'draft')
     </div>
 
     <template v-else>
-      <form class="max-w-lg space-y-5" @submit.prevent="submit">
-        <div v-if="saveError" class="rounded-xl border border-red-200 bg-red-50 p-4">
-          <p class="text-sm text-red-600">{{ saveError }}</p>
-        </div>
-
-        <div>
-          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            id="name"
-            v-model="form.name"
-            type="text"
-            required
-            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
-          <input
-            id="subject"
-            v-model="form.subject"
-            type="text"
-            required
-            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label for="template_id" class="block text-sm font-medium text-gray-700">Template</label>
-          <select
-            id="template_id"
-            v-model="form.template_id"
-            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          >
-            <option :value="null">— No template —</option>
-            <option v-for="template in templates" :key="template.id" :value="template.id">
-              {{ template.name }}
-            </option>
-            <option :value="CUSTOM_TEMPLATE">+ Custom template…</option>
-          </select>
-        </div>
-
-        <template v-if="isCustomTemplate">
-          <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4 space-y-4">
-            <p class="text-xs font-medium text-indigo-700 uppercase tracking-wider">New custom template</p>
-
-            <div>
-              <label for="custom_name" class="block text-sm font-medium text-gray-700">Template Name</label>
-              <input
-                id="custom_name"
-                v-model="form.custom_template.name"
-                type="text"
-                required
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label for="custom_engine" class="block text-sm font-medium text-gray-700">Engine</label>
-              <select
-                id="custom_engine"
-                v-model="form.custom_template.engine"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option v-for="engine in TEMPLATE_ENGINES" :key="engine.value" :value="engine.value">
-                  {{ engine.label }}
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label for="custom_subject_template" class="block text-sm font-medium text-gray-700">Subject Template</label>
-              <input
-                id="custom_subject_template"
-                v-model="form.custom_template.subject_template"
-                type="text"
-                required
-                placeholder="e.g. Hello {{ name }}!"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label for="custom_body_content" class="block text-sm font-medium text-gray-700">Body Content</label>
-              <textarea
-                id="custom_body_content"
-                v-model="form.custom_template.body_content"
-                rows="8"
-                required
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
-              />
-            </div>
-          </div>
-        </template>
-
-        <div>
-          <label for="sender_channel" class="block text-sm font-medium text-gray-700">Sender Channel</label>
-          <select
-            id="sender_channel"
-            v-model="form.sender_channel"
-            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          >
-            <option v-for="channel in SENDER_CHANNELS" :key="channel.value" :value="channel.value">
-              {{ channel.label }}
-            </option>
-          </select>
-        </div>
-
-        <div>
-          <span class="block text-sm font-medium text-gray-700">Scheduled At</span>
-          <div class="mt-1 flex gap-2">
-            <input
-              id="scheduled_date"
-              v-model="form.scheduled_date"
-              type="date"
-              class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            <input
-              id="scheduled_time"
-              v-model="form.scheduled_time"
-              type="time"
-              :disabled="!form.scheduled_date"
-              class="block w-36 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:text-gray-400"
-            />
-            <button
-              v-if="form.scheduled_date"
-              type="button"
-              class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-500 hover:bg-gray-50"
-              @click="form.scheduled_date = ''; form.scheduled_time = DEFAULT_SCHEDULED_TIME"
-            >
-              Clear
-            </button>
-          </div>
-          <p v-if="form.scheduled_date" class="mt-1 text-xs text-gray-400">
-            Scheduled for {{ new Date(`${form.scheduled_date}T${form.scheduled_time}`).toLocaleString() }}
-          </p>
-        </div>
-
-        <div class="flex gap-3 pt-2">
-          <button
-            type="submit"
-            :disabled="saving"
-            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {{ saving ? 'Saving…' : 'Save Draft' }}
-          </button>
-          <NuxtLink
-            to="/campaigns"
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </NuxtLink>
-        </div>
-      </form>
+      <CampaignForm
+        :initial-data="campaign"
+        :templates="templates"
+        :saving="saving"
+        :save-error="saveError"
+        submit-label="Save Draft"
+        submitting-label="Saving\u2026"
+        @submit="handleSubmit"
+      />
 
       <div class="mt-8 max-w-lg border-t border-gray-200 pt-6">
         <h2 class="text-sm font-medium text-gray-900">Campaign Actions</h2>
@@ -320,7 +122,7 @@ const canStart = computed(() => campaign.value?.status === 'draft')
           class="mt-4 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           @click="dispatch"
         >
-          {{ dispatching ? 'Starting…' : 'Start Campaign' }}
+          {{ dispatching ? 'Starting\u2026' : 'Start Campaign' }}
         </button>
       </div>
     </template>

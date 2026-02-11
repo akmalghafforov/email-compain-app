@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
 import { useListPage } from '~/composables/useListPage'
+import { formatDate } from '~/utils/date'
 
 const { currentPage, items: campaigns, meta, status, error } = useListPage<Campaign>('/api/campaigns')
 </script>
@@ -20,8 +21,8 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
       </NuxtLink>
     </div>
 
-    <div v-if="status === 'pending'" class="mt-6 text-center text-gray-500">
-      Loading campaigns...
+    <div v-if="status === 'pending'">
+      <TableSkeleton :columns="8" />
     </div>
 
     <div v-else-if="error" class="mt-6 rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
@@ -33,18 +34,18 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
     </div>
 
     <template v-else>
-      <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div role="region" aria-label="Campaigns table" class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Scheduled At</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Sent At</th>
-              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Recipients</th>
-              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Sent</th>
-              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Failed</th>
-              <th class="px-6 py-3"></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Scheduled At</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Sent At</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Recipients</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Sent</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Failed</th>
+              <th scope="col" class="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
@@ -56,10 +57,10 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
                 <StatusBadge :status="campaign.status" />
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {{ campaign.scheduled_at ? new Date(campaign.scheduled_at).toLocaleDateString() : '—' }}
+                {{ formatDate(campaign.scheduled_at) }}
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {{ campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : '—' }}
+                {{ formatDate(campaign.sent_at) }}
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-700">
                 {{ (campaign.total_recipients ?? 0).toLocaleString() }}

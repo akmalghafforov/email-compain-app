@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-slate-900 px-4 shadow-lg">
+  <nav aria-label="Main navigation" class="bg-slate-900 px-4 shadow-lg">
 
     <div class="mx-auto flex h-14 max-w-6xl items-center justify-between">
 

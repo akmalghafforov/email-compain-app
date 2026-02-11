@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Subscriber } from '~/types/subscriber'
+import { formatDate } from '~/utils/date'
 
 const { currentPage, items: subscribers, meta, status, error } = useListPage<Subscriber>('/api/subscribers')
 </script>
@@ -9,8 +10,8 @@ const { currentPage, items: subscribers, meta, status, error } = useListPage<Sub
     <h1 class="text-3xl font-bold text-gray-900">Subscribers</h1>
     <p class="mt-2 text-gray-600">Manage your subscribers here.</p>
 
-    <div v-if="status === 'pending'" class="mt-6 text-center text-gray-500">
-      Loading subscribers...
+    <div v-if="status === 'pending'">
+      <TableSkeleton :columns="4" />
     </div>
 
     <div v-else-if="error" class="mt-6 rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
@@ -22,14 +23,14 @@ const { currentPage, items: subscribers, meta, status, error } = useListPage<Sub
     </div>
 
     <template v-else>
-      <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div role="region" aria-label="Subscribers table" class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Subscribed At</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Subscribed At</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
@@ -44,7 +45,7 @@ const { currentPage, items: subscribers, meta, status, error } = useListPage<Sub
                 <StatusBadge :status="subscriber.status" />
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {{ subscriber.subscribed_at ? new Date(subscriber.subscribed_at).toLocaleDateString() : '—' }}
+                {{ formatDate(subscriber.subscribed_at) }}
               </td>
             </tr>
           </tbody>

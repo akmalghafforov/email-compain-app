@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
 import type { CampaignStats } from '~/types/campaignStats'
+import { formatDateTime, formatPercent } from '~/utils/date'
 
-const config = useRuntimeConfig()
+const { url } = useApi()
 const route = useRoute()
 
 const id = route.params.id as string
 
 const [{ data: campaignResponse, status, error }, { data: statsResponse }] = await Promise.all([
-  useFetch<{ data: Campaign }>(`${config.public.apiBase}/api/campaigns/${id}`),
-  useFetch<{ data: CampaignStats }>(`${config.public.apiBase}/api/campaigns/${id}/stats`),
+  useFetch<{ data: Campaign }>(url(`/api/campaigns/${id}`)),
+  useFetch<{ data: CampaignStats }>(url(`/api/campaigns/${id}/stats`)),
 ])
 
 const campaign = computed(() => campaignResponse.value?.data ?? null)
@@ -17,15 +18,6 @@ const stats = computed(() => statsResponse.value?.data ?? null)
 
 if (campaign.value && campaign.value.status !== 'sent' && campaign.value.status !== 'failed') {
   await navigateTo(`/campaigns/${id}/edit`)
-}
-
-function formatDate(value: string | null): string {
-  if (!value) return '—'
-  return new Date(value).toLocaleString()
-}
-
-function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`
 }
 </script>
 
@@ -36,8 +28,16 @@ function formatPercent(value: number): string {
       <h1 class="text-3xl font-bold text-gray-900">Campaign Details</h1>
     </div>
 
-    <div v-if="status === 'pending'" class="text-center text-gray-500">
-      Loading campaign...
+    <div v-if="status === 'pending'" class="max-w-3xl space-y-6">
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="h-5 w-32 animate-pulse rounded bg-gray-200" />
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
+          <div v-for="i in 6" :key="i">
+            <div class="h-3 w-20 animate-pulse rounded bg-gray-200" />
+            <div class="mt-2 h-4 w-28 animate-pulse rounded bg-gray-100" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-else-if="error" class="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
@@ -68,11 +68,11 @@ function formatPercent(value: number): string {
             </div>
             <div>
               <dt class="font-medium text-gray-500">Scheduled At</dt>
-              <dd class="mt-1 text-gray-900">{{ formatDate(campaign.scheduled_at) }}</dd>
+              <dd class="mt-1 text-gray-900">{{ formatDateTime(campaign.scheduled_at) }}</dd>
             </div>
             <div>
               <dt class="font-medium text-gray-500">Sent At</dt>
-              <dd class="mt-1 text-gray-900">{{ formatDate(campaign.sent_at) }}</dd>
+              <dd class="mt-1 text-gray-900">{{ formatDateTime(campaign.sent_at) }}</dd>
             </div>
           </dl>
         </div>

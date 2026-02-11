@@ -22,6 +22,8 @@ const statusColor: Record<string, string> = {
 
 <template>
   <span
+    role="status"
+    :aria-label="`Status: ${status}`"
     class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
     :class="statusColor[status] ?? 'bg-gray-100 text-gray-600'"
   >
