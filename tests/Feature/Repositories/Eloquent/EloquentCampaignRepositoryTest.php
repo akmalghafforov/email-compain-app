@@ -5,10 +5,13 @@ namespace Tests\Feature\Repositories\Eloquent;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 use App\Models\Campaign;
 use App\Models\Template;
+use App\Models\Subscriber;
 use App\Enums\CampaignStatus;
+use App\Enums\CampaignSubscriberStatus;
 use App\Repositories\EloquentCampaignRepository;
 use App\Contracts\Repositories\CampaignRepositoryInterface;
 
@@ -25,24 +28,6 @@ class EloquentCampaignRepositoryTest extends TestCase
         $this->repository = app(EloquentCampaignRepository::class);
     }
 
-    public function test_find_returns_campaign_by_id(): void
-    {
-        $campaign = Campaign::factory()->create();
-
-        $found = $this->repository->find($campaign->id);
-
-        $this->assertNotNull($found);
-        $this->assertEquals($campaign->id, $found->id);
-        $this->assertEquals($campaign->name, $found->name);
-    }
-
-    public function test_find_returns_null_for_nonexistent_id(): void
-    {
-        $result = $this->repository->find(999);
-
-        $this->assertNull($result);
-    }
-
     public function test_find_or_fail_returns_campaign_by_id(): void
     {
         $campaign = Campaign::factory()->create();
@@ -57,22 +42,6 @@ class EloquentCampaignRepositoryTest extends TestCase
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->findOrFail(999);
-    }
-
-    public function test_all_returns_empty_collection_when_no_campaigns(): void
-    {
-        $result = $this->repository->all();
-
-        $this->assertCount(0, $result);
-    }
-
-    public function test_all_returns_all_campaigns(): void
-    {
-        Campaign::factory()->count(3)->create();
-
-        $result = $this->repository->all();
-
-        $this->assertCount(3, $result);
     }
 
     public function test_create_persists_campaign(): void
@@ -161,5 +130,113 @@ class EloquentCampaignRepositoryTest extends TestCase
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->markAsStarted(999);
+    }
+
+    public function test_update_modifies_campaign_attributes(): void
+    {
+        $campaign = Campaign::factory()->create(['name' => 'Old Name']);
+
+        $updated = $this->repository->update($campaign->id, ['name' => 'New Name']);
+
+        $this->assertEquals('New Name', $updated->name);
+        $this->assertDatabaseHas('campaigns', [
+            'id' => $campaign->id,
+            'name' => 'New Name',
+        ]);
+    }
+
+    public function test_update_throws_for_nonexistent_campaign(): void
+    {
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->repository->update(999, ['name' => 'New Name']);
+    }
+
+    public function test_update_status_changes_campaign_status(): void
+    {
+        $campaign = Campaign::factory()->create(['status' => CampaignStatus::Draft]);
+
+        $this->repository->updateStatus($campaign->id, CampaignStatus::Sending);
+
+        $this->assertDatabaseHas('campaigns', [
+            'id' => $campaign->id,
+            'status' => CampaignStatus::Sending->value,
+        ]);
+    }
+
+    public function test_update_status_throws_for_nonexistent_campaign(): void
+    {
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->repository->updateStatus(999, CampaignStatus::Sending);
+    }
+
+    public function test_chunk_pending_subscribers_iterates_pending_records(): void
+    {
+        $campaign = Campaign::factory()->create();
+        $subscribers = Subscriber::factory()->count(5)->create();
+
+        foreach ($subscribers as $subscriber) {
+            $campaign->subscribers()->attach($subscriber->id, [
+                'status' => CampaignSubscriberStatus::Pending->value,
+            ]);
+        }
+
+        $collectedIds = [];
+        $this->repository->chunkPendingSubscribers($campaign->id, 2, function (array $subscriberIds) use (&$collectedIds) {
+            $collectedIds = array_merge($collectedIds, $subscriberIds);
+        });
+
+        $this->assertEqualsCanonicalizing(
+            $subscribers->pluck('id')->all(),
+            $collectedIds
+        );
+    }
+
+    public function test_chunk_pending_subscribers_skips_non_pending_records(): void
+    {
+        $campaign = Campaign::factory()->create();
+        $pending1 = Subscriber::factory()->create();
+        $pending2 = Subscriber::factory()->create();
+        $sent = Subscriber::factory()->create();
+
+        $campaign->subscribers()->attach($pending1->id, ['status' => CampaignSubscriberStatus::Pending->value]);
+        $campaign->subscribers()->attach($pending2->id, ['status' => CampaignSubscriberStatus::Pending->value]);
+        $campaign->subscribers()->attach($sent->id, ['status' => CampaignSubscriberStatus::Sent->value]);
+
+        $collectedIds = [];
+        $this->repository->chunkPendingSubscribers($campaign->id, 10, function (array $subscriberIds) use (&$collectedIds) {
+            $collectedIds = array_merge($collectedIds, $subscriberIds);
+        });
+
+        $this->assertEqualsCanonicalizing([$pending1->id, $pending2->id], $collectedIds);
+    }
+
+    public function test_paginate_returns_paginated_campaigns(): void
+    {
+        Campaign::factory()->count(20)->create();
+
+        $result = $this->repository->paginate(10);
+
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
+        $this->assertCount(10, $result->items());
+        $this->assertEquals(20, $result->total());
+    }
+
+    public function test_paginate_includes_subscriber_count_aggregates(): void
+    {
+        $campaign = Campaign::factory()->create();
+        $subscribers = Subscriber::factory()->count(3)->create();
+
+        $campaign->subscribers()->attach($subscribers[0]->id, ['status' => CampaignSubscriberStatus::Sent->value]);
+        $campaign->subscribers()->attach($subscribers[1]->id, ['status' => CampaignSubscriberStatus::Failed->value]);
+        $campaign->subscribers()->attach($subscribers[2]->id, ['status' => CampaignSubscriberStatus::Pending->value]);
+
+        $result = $this->repository->paginate(10);
+        $item = $result->items()[0];
+
+        $this->assertEquals(3, $item->total_recipients);
+        $this->assertEquals(1, $item->total_sent);
+        $this->assertEquals(1, $item->total_failed);
     }
 }

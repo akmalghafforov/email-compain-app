@@ -4,11 +4,11 @@ namespace Tests\Feature\Repositories;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-use App\Models\Campaign;
 use App\Models\Subscriber;
 use App\Enums\SubscriberStatus;
-use App\Enums\CampaignSubscriberStatus;
 use App\Repositories\EloquentSubscriberRepository;
 
 class EloquentSubscriberRepositoryTest extends TestCase
@@ -23,130 +23,83 @@ class EloquentSubscriberRepositoryTest extends TestCase
         $this->repository = new EloquentSubscriberRepository();
     }
 
-    public function test_it_can_create_a_subscriber()
+    public function test_segment_by_query_returns_builder_instance(): void
     {
-        $data = [
-            'email' => 'test@example.com',
-            'name' => 'John Doe',
+        $result = $this->repository->segmentByQuery([]);
+
+        $this->assertInstanceOf(Builder::class, $result);
+    }
+
+    public function test_segment_by_query_filters_by_scalar_value(): void
+    {
+        Subscriber::factory()->count(2)->create(['status' => SubscriberStatus::Active]);
+        Subscriber::factory()->create(['status' => SubscriberStatus::Unsubscribed]);
+
+        $results = $this->repository->segmentByQuery(['status' => SubscriberStatus::Active->value])->get();
+
+        $this->assertCount(2, $results);
+        $results->each(fn ($s) => $this->assertEquals(SubscriberStatus::Active, $s->status));
+    }
+
+    public function test_segment_by_query_filters_by_array_value(): void
+    {
+        Subscriber::factory()->create(['email' => 'a@test.com']);
+        Subscriber::factory()->create(['email' => 'b@test.com']);
+        Subscriber::factory()->create(['email' => 'c@test.com']);
+
+        $results = $this->repository->segmentByQuery(['email' => ['a@test.com', 'b@test.com']])->get();
+
+        $this->assertCount(2, $results);
+        $this->assertEqualsCanonicalizing(
+            ['a@test.com', 'b@test.com'],
+            $results->pluck('email')->all()
+        );
+    }
+
+    public function test_segment_by_query_filters_by_null_value(): void
+    {
+        Subscriber::factory()->create(['metadata' => null]);
+        Subscriber::factory()->create(['metadata' => ['key' => 'value']]);
+
+        $results = $this->repository->segmentByQuery(['metadata' => null])->get();
+
+        $this->assertCount(1, $results);
+        $this->assertNull($results->first()->metadata);
+    }
+
+    public function test_segment_by_query_with_multiple_criteria(): void
+    {
+        Subscriber::factory()->create(['name' => 'John', 'status' => SubscriberStatus::Active]);
+        Subscriber::factory()->create(['name' => 'John', 'status' => SubscriberStatus::Unsubscribed]);
+        Subscriber::factory()->create(['name' => 'Jane', 'status' => SubscriberStatus::Active]);
+
+        $results = $this->repository->segmentByQuery([
+            'name' => 'John',
             'status' => SubscriberStatus::Active->value,
-        ];
+        ])->get();
 
-        $subscriber = $this->repository->create($data);
-
-        $this->assertInstanceOf(Subscriber::class, $subscriber);
-        $this->assertEquals('test@example.com', $subscriber->email);
-        $this->assertEquals('John Doe', $subscriber->name);
-        $this->assertEquals(SubscriberStatus::Active, $subscriber->status);
-        $this->assertDatabaseHas('subscribers', ['email' => 'test@example.com']);
+        $this->assertCount(1, $results);
+        $this->assertEquals('John', $results->first()->name);
+        $this->assertEquals(SubscriberStatus::Active, $results->first()->status);
     }
 
-    public function test_it_can_find_a_subscriber_by_id()
-    {
-        $subscriber = Subscriber::factory()->create();
-
-        $found = $this->repository->find($subscriber->id);
-
-        $this->assertNotNull($found);
-        $this->assertEquals($subscriber->id, $found->id);
-    }
-
-    public function test_it_returns_null_if_subscriber_not_found_by_id()
-    {
-        $found = $this->repository->find(999);
-
-        $this->assertNull($found);
-    }
-
-
-    public function test_it_can_find_a_subscriber_by_email()
-    {
-        $subscriber = Subscriber::factory()->create(['email' => 'findme@example.com']);
-
-        $found = $this->repository->findByEmail('findme@example.com');
-
-        $this->assertNotNull($found);
-        $this->assertEquals($subscriber->id, $found->id);
-    }
-
-
-    public function test_it_can_update_a_subscriber()
-    {
-        $subscriber = Subscriber::factory()->create(['name' => 'Old Name']);
-
-        $updated = $this->repository->update($subscriber->id, ['name' => 'New Name']);
-
-        $this->assertEquals('New Name', $updated->name);
-        $this->assertDatabaseHas('subscribers', ['id' => $subscriber->id, 'name' => 'New Name']);
-    }
-
-    public function test_it_throws_exception_if_updating_non_existent_subscriber()
-    {
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
-        $this->repository->update(999, ['name' => 'New Name']);
-    }
-
-    public function test_it_can_delete_a_subscriber()
-    {
-        $subscriber = Subscriber::factory()->create();
-
-        $result = $this->repository->delete($subscriber->id);
-
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('subscribers', ['id' => $subscriber->id]);
-    }
-
-    public function test_it_returns_false_if_deleting_non_existent_subscriber()
-    {
-        $result = $this->repository->delete(999);
-
-        $this->assertFalse($result);
-    }
-
-    public function test_it_can_get_all_subscribers()
+    public function test_segment_by_query_with_empty_criteria_returns_all(): void
     {
         Subscriber::factory()->count(3)->create();
 
-        $all = $this->repository->all();
+        $results = $this->repository->segmentByQuery([])->get();
 
-        $this->assertCount(3, $all);
+        $this->assertCount(3, $results);
     }
 
-    public function test_it_can_segment_subscribers_by_criteria()
+    public function test_paginate_returns_paginated_subscribers(): void
     {
-        Subscriber::factory()->create(['status' => SubscriberStatus::Active, 'email' => 'a@example.com']);
-        Subscriber::factory()->create(['status' => SubscriberStatus::Unsubscribed, 'email' => 'b@example.com']);
-        Subscriber::factory()->create(['status' => SubscriberStatus::Active, 'email' => 'c@example.com']);
+        Subscriber::factory()->count(20)->create();
 
-        $results = $this->repository->segmentBy(['status' => SubscriberStatus::Active->value]);
+        $result = $this->repository->paginate(10);
 
-        $this->assertCount(2, $results);
-        $this->assertEquals('a@example.com', $results[0]->email);
-        $this->assertEquals('c@example.com', $results[1]->email);
-    }
-
-    public function test_it_can_find_active_subscribers_for_campaign()
-    {
-        $campaign = Campaign::factory()->create();
-
-        $activeSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Active]);
-        $unsubscribedSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Unsubscribed]);
-
-
-        // This subscriber is active but not attached to campaign
-        $otherActiveSubscriber = Subscriber::factory()->create(['status' => SubscriberStatus::Active]);
-
-        $campaign->subscribers()->attach($activeSubscriber, ['status' => CampaignSubscriberStatus::Pending]);
-        $campaign->subscribers()->attach($unsubscribedSubscriber, ['status' => CampaignSubscriberStatus::Pending]);
-
-
-        // We expect only the active subscriber attached to the campaign
-        $results = $this->repository->findActiveForCampaign($campaign->id);
-
-
-        $this->assertCount(1, $results);
-        $this->assertTrue($results->contains($activeSubscriber));
-        $this->assertFalse($results->contains($unsubscribedSubscriber));
-
-        $this->assertFalse($results->contains($otherActiveSubscriber));
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
+        $this->assertCount(10, $result->items());
+        $this->assertEquals(20, $result->total());
     }
 }

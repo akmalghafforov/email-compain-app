@@ -63,4 +63,12 @@ interface CampaignRepositoryInterface
      * Update the status of a campaign.
      */
     public function updateStatus(int $campaignId, CampaignStatus $status): void;
+
+
+    /**
+     * Mark pending subscribers as failed for a campaign.
+     *
+     * @param  array<int>  $subscriberIds
+     */
+    public function markPendingSubscribersAsFailed(int $campaignId, array $subscriberIds, string $reason): void;
 }

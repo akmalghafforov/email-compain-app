@@ -20,8 +20,8 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
         return Campaign::latest()
             ->withCount([
                 'subscribers as total_recipients',
-                'subscribers as total_sent' => fn ($q) => $q->whereRaw('campaign_subscriber.status = ?', [CampaignSubscriberStatus::Sent->value]),
-                'subscribers as total_failed' => fn ($q) => $q->whereRaw('campaign_subscriber.status = ?', [CampaignSubscriberStatus::Failed->value]),
+                'subscribers as total_sent' => fn($q) => $q->whereRaw('campaign_subscriber.status = ?', [CampaignSubscriberStatus::Sent->value]),
+                'subscribers as total_failed' => fn($q) => $q->whereRaw('campaign_subscriber.status = ?', [CampaignSubscriberStatus::Failed->value]),
             ])
             ->paginate($perPage);
     }
@@ -75,5 +75,17 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
     {
         $campaign = $this->findOrFail($campaignId);
         $campaign->update(['status' => $status]);
+    }
+
+    public function markPendingSubscribersAsFailed(int $campaignId, array $subscriberIds, string $reason): void
+    {
+        CampaignSubscriber::query()
+            ->where('campaign_id', $campaignId)
+            ->whereIn('subscriber_id', $subscriberIds)
+            ->where('status', CampaignSubscriberStatus::Pending->value)
+            ->update([
+                'status' => CampaignSubscriberStatus::Failed->value,
+                'failed_reason' => $reason,
+            ]);
     }
 }
