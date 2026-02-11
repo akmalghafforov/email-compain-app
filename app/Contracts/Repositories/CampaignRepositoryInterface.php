@@ -17,23 +17,11 @@ interface CampaignRepositoryInterface
     public function paginate(int $perPage = 15): LengthAwarePaginator;
 
     /**
-     * Find a campaign by its ID.
-     */
-    public function find(int $id): ?Campaign;
-
-    /**
      * Find a campaign by its ID or fail.
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function findOrFail(int $id): Campaign;
-
-    /**
-     * Get all campaigns.
-     *
-     * @return Collection<int, Campaign>
-     */
-    public function all(): Collection;
 
     /**
      * Create a new campaign.
@@ -63,13 +51,6 @@ interface CampaignRepositoryInterface
      * @param  Closure(list<int>): void  $callback
      */
     public function chunkPendingSubscribers(int $campaignId, int $chunkSize, Closure $callback): void;
-
-    /**
-     * Mark pending subscribers as failed for a campaign.
-     *
-     * @param  array<int>  $subscriberIds
-     */
-    public function markPendingSubscribersAsFailed(int $campaignId, array $subscriberIds, string $reason): void;
 
     /**
      * Update a campaign's attributes.

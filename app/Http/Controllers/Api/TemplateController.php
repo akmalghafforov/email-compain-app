@@ -40,33 +40,4 @@ class TemplateController extends Controller
         return ApiResponse::created($template, 'Template created successfully.');
     }
 
-    public function show(string $id): JsonResponse
-    {
-        $template = $this->templateRepository->findOrFail((int) $id);
-
-        return ApiResponse::success($template);
-    }
-
-    public function update(Request $request, string $id): JsonResponse
-    {
-        $validated = $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'engine' => ['nullable', Rule::enum(TemplateEngine::class)],
-            'subject_template' => ['nullable', 'string'],
-            'body_content' => ['nullable', 'string'],
-            'metadata' => ['nullable', 'array'],
-        ]);
-
-        $template = $this->templateRepository->update((int) $id, $validated);
-
-        return ApiResponse::success($template, 'Template updated successfully.');
-    }
-
-    public function destroy(string $id): JsonResponse
-    {
-        $this->templateRepository->findOrFail((int) $id);
-        $this->templateRepository->delete((int) $id);
-
-        return ApiResponse::message('Template deleted successfully.');
-    }
 }

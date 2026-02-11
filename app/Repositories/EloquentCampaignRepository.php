@@ -26,22 +26,9 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function find(int $id): ?Campaign
-    {
-        return Campaign::find($id);
-    }
-
     public function findOrFail(int $id): Campaign
     {
         return Campaign::findOrFail($id);
-    }
-
-    /**
-     * @return Collection<int, Campaign>
-     */
-    public function all(): Collection
-    {
-        return Campaign::all();
     }
 
     public function create(array $data): Campaign
@@ -82,18 +69,6 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             ->chunkById($chunkSize, function ($pivotRecords) use ($callback) {
                 $callback($pivotRecords->pluck('subscriber_id')->all());
             });
-    }
-
-    public function markPendingSubscribersAsFailed(int $campaignId, array $subscriberIds, string $reason): void
-    {
-        CampaignSubscriber::query()
-            ->where('campaign_id', $campaignId)
-            ->whereIn('subscriber_id', $subscriberIds)
-            ->where('status', CampaignSubscriberStatus::Pending->value)
-            ->update([
-                'status' => CampaignSubscriberStatus::Failed->value,
-                'failed_reason' => $reason,
-            ]);
     }
 
     public function updateStatus(int $campaignId, CampaignStatus $status): void
