@@ -1,16 +1,7 @@
 <script setup lang="ts">
-import type { PaginatedResponse, Subscriber } from '~/types/subscriber'
+import type { Subscriber } from '~/types/subscriber'
 
-const config = useRuntimeConfig()
-const currentPage = ref(1)
-const perPage = 15
-
-const { data: response, status, error } = await useFetch<PaginatedResponse<Subscriber>>(
-  computed(() => `${config.public.apiBase}/api/subscribers?page=${currentPage.value}&per_page=${perPage}`)
-)
-
-const subscribers = computed(() => response.value?.data ?? [])
-const meta = computed(() => response.value?.meta)
+const { currentPage, items: subscribers, meta, status, error } = useListPage<Subscriber>('/api/subscribers')
 </script>
 
 <template>
@@ -60,7 +51,7 @@ const meta = computed(() => response.value?.meta)
         </table>
       </div>
 
-      <AppPagination v-if="meta" :meta="meta" v-model:current-page="currentPage" />
+      <AppPagination v-if="meta" :meta="meta" v-model:current-page="currentPage" label="subscribers" />
     </template>
   </div>
 </template>

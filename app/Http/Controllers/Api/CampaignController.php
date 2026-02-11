@@ -39,6 +39,13 @@ class CampaignController extends Controller
         return ApiResponse::success($campaign);
     }
 
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $campaign = $this->campaignRepository->update((int) $id, $request->all());
+
+        return ApiResponse::success($campaign, 'Campaign updated successfully.');
+    }
+
     public function dispatch(string $id): JsonResponse
     {
         $campaign = $this->campaignRepository->markAsStarted((int) $id);

@@ -1,4 +1,4 @@
-import type { PaginationMeta } from '~/types/subscriber'
+import type { PaginationMeta } from '~/types/pagination'
 
 export function usePagination(meta: Ref<PaginationMeta | undefined>, page?: Ref<number>) {
   const currentPage = page ?? ref(1)

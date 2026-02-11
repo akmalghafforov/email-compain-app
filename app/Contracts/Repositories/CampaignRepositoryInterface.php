@@ -72,6 +72,13 @@ interface CampaignRepositoryInterface
     public function markPendingSubscribersAsFailed(int $campaignId, array $subscriberIds, string $reason): void;
 
     /**
+     * Update a campaign's attributes.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function update(int $id, array $data): Campaign;
+
+    /**
      * Update the status of a campaign.
      */
     public function updateStatus(int $campaignId, CampaignStatus $status): void;

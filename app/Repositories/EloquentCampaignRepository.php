@@ -51,6 +51,14 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
         return Campaign::where('status', $status)->get();
     }
 
+    public function update(int $id, array $data): Campaign
+    {
+        $campaign = $this->findOrFail($id);
+        $campaign->update($data);
+
+        return $campaign->refresh();
+    }
+
     public function markAsStarted(int $id): Campaign
     {
         $campaign = $this->findOrFail($id);

@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
-import type { PaginatedResponse } from '~/types/subscriber'
 
-const config = useRuntimeConfig()
-const currentPage = ref(1)
-const perPage = 15
-
-const { data: response, status, error } = await useFetch<PaginatedResponse<Campaign>>(
-  computed(() => `${config.public.apiBase}/api/campaigns?page=${currentPage.value}&per_page=${perPage}`)
-)
-
-const campaigns = computed(() => response.value?.data ?? [])
-const meta = computed(() => response.value?.meta)
+const { currentPage, items: campaigns, meta, status, error } = useListPage<Campaign>('/api/campaigns')
 </script>
 
 <template>
@@ -41,6 +31,7 @@ const meta = computed(() => response.value?.meta)
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Scheduled At</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Sent At</th>
+              <th class="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
@@ -60,12 +51,20 @@ const meta = computed(() => response.value?.meta)
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                 {{ campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : '—' }}
               </td>
+              <td class="whitespace-nowrap px-6 py-4 text-sm">
+                <NuxtLink
+                  :to="`/campaigns/${campaign.id}/edit`"
+                  class="font-medium text-indigo-600 hover:text-indigo-800"
+                >
+                  Edit
+                </NuxtLink>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <AppPagination v-if="meta" :meta="meta" v-model:current-page="currentPage" />
+      <AppPagination v-if="meta" :meta="meta" v-model:current-page="currentPage" label="campaigns" />
     </template>
   </div>
 </template>
