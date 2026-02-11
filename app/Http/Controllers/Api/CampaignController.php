@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 
 use App\Http\ApiResponse;
@@ -27,7 +28,15 @@ class CampaignController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $campaign = $this->campaignRepository->create($request->all());
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'subject' => ['required', 'string', 'max:255'],
+            'template_id' => ['required', 'integer', Rule::exists('templates', 'id')],
+            'sender_channel' => ['required', 'string', Rule::in(['smtp', 'sendgrid', 'mailgun'])],
+            'scheduled_at' => ['nullable', 'date'],
+        ]);
+
+        $campaign = $this->campaignRepository->create($validated);
 
         return ApiResponse::created($campaign, 'Campaign created successfully.');
     }

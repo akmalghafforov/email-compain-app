@@ -7,8 +7,18 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
 
 <template>
   <div>
-    <h1 class="text-3xl font-bold text-gray-900">Campaigns</h1>
-    <p class="mt-2 text-gray-600">Manage your campaigns here.</p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Campaigns</h1>
+        <p class="mt-2 text-gray-600">Manage your campaigns here.</p>
+      </div>
+      <NuxtLink
+        to="/campaigns/create"
+        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+      >
+        New Campaign
+      </NuxtLink>
+    </div>
 
     <div v-if="status === 'pending'" class="mt-6 text-center text-gray-500">
       Loading campaigns...
