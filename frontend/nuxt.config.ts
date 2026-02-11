@@ -5,7 +5,12 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss'],
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL || 'http://localhost:8000',
+      apiBase: '/api-proxy',
+    },
+  },
+  routeRules: {
+    '/api-proxy/**': {
+      proxy: `${process.env.API_BASE_URL || 'http://localhost:8000'}/**`,
     },
   },
 })
