@@ -17,7 +17,13 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
 {
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return Campaign::latest()->paginate($perPage);
+        return Campaign::latest()
+            ->withCount([
+                'subscribers as total_recipients',
+                'subscribers as total_sent' => fn ($q) => $q->whereRaw('campaign_subscriber.status = ?', [CampaignSubscriberStatus::Sent->value]),
+                'subscribers as total_failed' => fn ($q) => $q->whereRaw('campaign_subscriber.status = ?', [CampaignSubscriberStatus::Failed->value]),
+            ])
+            ->paginate($perPage);
     }
 
     public function find(int $id): ?Campaign

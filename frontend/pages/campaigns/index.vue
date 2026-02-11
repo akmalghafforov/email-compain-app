@@ -28,10 +28,12 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Subject</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Scheduled At</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Sent At</th>
+              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Recipients</th>
+              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Sent</th>
+              <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Failed</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
@@ -39,9 +41,6 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
             <tr v-for="campaign in campaigns" :key="campaign.id" class="hover:bg-gray-50">
               <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                 {{ campaign.name }}
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
-                {{ campaign.subject }}
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm">
                 <StatusBadge :status="campaign.status" />
@@ -51,6 +50,18 @@ const { currentPage, items: campaigns, meta, status, error } = useListPage<Campa
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                 {{ campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : '—' }}
+              </td>
+              <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-700">
+                {{ (campaign.total_recipients ?? 0).toLocaleString() }}
+              </td>
+              <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-700">
+                {{ (campaign.total_sent ?? 0).toLocaleString() }}
+              </td>
+              <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                <span v-if="(campaign.total_failed ?? 0) > 0" class="text-red-600">
+                  {{ (campaign.total_failed ?? 0).toLocaleString() }}
+                </span>
+                <span v-else class="text-gray-400">—</span>
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm">
                 <NuxtLink

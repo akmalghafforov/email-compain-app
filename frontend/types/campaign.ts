@@ -9,4 +9,7 @@ export interface Campaign {
     sent_at: string | null
     created_at: string
     updated_at: string
+    total_recipients: number | null
+    total_sent: number | null
+    total_failed: number | null
 }
