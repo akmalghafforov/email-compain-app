@@ -7,8 +7,10 @@ use Illuminate\Support\ServiceProvider;
 use App\Services\Delivery\DeliveryTracker;
 use App\Contracts\DeliveryTrackerInterface;
 use App\Repositories\EloquentCampaignRepository;
+use App\Repositories\EloquentTemplateRepository;
 use App\Repositories\EloquentSubscriberRepository;
 use App\Contracts\Repositories\CampaignRepositoryInterface;
+use App\Contracts\Repositories\TemplateRepositoryInterface;
 use App\Contracts\Repositories\SubscriberRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
@@ -26,6 +28,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SubscriberRepositoryInterface::class,
             EloquentSubscriberRepository::class
+        );
+
+        $this->app->bind(
+            TemplateRepositoryInterface::class,
+            EloquentTemplateRepository::class
         );
 
         $this->app->bind(
